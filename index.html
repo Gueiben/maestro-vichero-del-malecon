@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Maestro Vichero del Malecon - Simulador Chocoano (Quibdo e Istmina)</title>
+  <style>
+    :root {
+      --bg-dark: #101916;
+      --bg-panel: #1b2a24;
+      --bg-card: #243830;
+      --gold: #f59e0b;
+      --green: #10b981;
+      --cyan: #06b6d4;
+      --red: #ef4444;
+      --text: #f3f4f6;
+      --muted: #9ca3af;
+      --border: #3d5a4e;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+    body {
+      background: radial-gradient(circle at top, #1d312a 0%, #0d1512 100%);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 16px;
+    }
+    .app { max-width: 1240px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
+    header {
+      background: var(--bg-panel);
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 18px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+    h1 { font-size: 1.4rem; color: var(--gold); }
+    .subtitle { font-size: 0.86rem; color: var(--muted); }
+    .btn {
+      background: #2b443a;
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 8px 13px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.85rem;
+    }
+    .btn:hover:not(:disabled) { background: #37574a; }
+    .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+    .btn-primary { background: var(--gold); color: #111827; border-color: #fbbf24; }
+    .btn-accent { background: var(--cyan); color: #082f49; border-color: #67e8f9; }
+    .btn-success { background: var(--green); color: #064e3b; border-color: #6ee7b7; }
+    .hud-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+    }
+    .hud-box {
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+    }
+    .hud-label { font-size: 0.76rem; color: var(--muted); text-transform: uppercase; }
+    .hud-val { font-size: 1.25rem; font-weight: 700; margin-top: 4px; }
+    .hud-sub { font-size: 0.82rem; color: #a7f3d0; margin-top: 4px; }
+    .stations-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 12px;
+    }
+    .panel {
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .panel-title { font-size: 1rem; font-weight: 700; color: #fde68a; border-bottom: 1px solid var(--border); padding-bottom: 6px; }
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .row-wrap { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+    .pill {
+      font-size: 0.75rem;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: #13201b;
+      border: 1px solid var(--border);
+      color: #fde68a;
+    }
+    .log-box {
+      max-height: 190px;
+      overflow-y: auto;
+      background: #101916;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-size: 0.83rem;
+    }
+    .log-line { padding: 5px 8px; background: #192722; border-left: 3px solid var(--gold); border-radius: 4px; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    th, td { border: 1px solid var(--border); padding: 8px; text-align: left; }
+    th { background: #14221d; color: #fde68a; }
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div>
+        <h1>MAESTRO VICHERO DEL MALECON - Simulador Fluvial Chocoano</h1>
+        <div class="subtitle">Embarcadero de Quibdo e Istmina (Rios Atrato y San Juan) | Cocina Caliente, Alquimia de Botellas Curadas, Ventanilla y Muelle de Champas</div>
+      </div>
+      <div class="row-wrap">
+        <button class="btn btn-primary" id="tabSimBtn" onclick="setTab('sim')">Puesto y Estaciones (En Vivo)</button>
+        <button class="btn" id="tabRecBtn" onclick="setTab('rec')">Recetario y Arquitectura</button>
+        <button class="btn btn-accent" onclick="advanceTimePhase()">Avanzar Clima / Hora del Dia</button>
+        <button class="btn" id="btnAudio" onclick="toggleAudio()">Audio Chirimia: ON</button>
+      </div>
+    </header>
+
+    <div class="hud-grid">
+      <div class="hud-box">
+        <div class="hud-label">Caja del Puesto y Reputacion</div>
+        <div class="hud-val" id="hudMoney">$45,000 COP (45 Patacones)</div>
+        <div class="hud-sub" id="hudRep">Reputacion en el Atrato: 120 pts (Nivel: Maestro de Barranco)</div>
+      </div>
+      <div class="hud-box">
+        <div class="hud-label">Fase del Dia y Clima Pluvial</div>
+        <div class="hud-val" id="hudPhase">1. Manana de Champa (Sol Suave)</div>
+        <div class="hud-sub" id="hudDemand">Demanda Alta: Chontaduro con Sal y Miel + Borojo Motor 200 HP</div>
+      </div>
+      <div class="hud-box">
+        <div class="hud-label">Bodega de Insumos Crudos</div>
+        <div class="hud-val" id="hudRaw">Chonta: 5 | Popocho: 4 | Viche: 5 | Borojo: 4</div>
+        <div class="hud-sub" id="hudHerbs">Pipilongo: 3 | Miel/Sal: 6 | Coco/Clavo: 4 | Azotea: 4</div>
+      </div>
+      <div class="hud-box">
+        <div class="hud-label">Vitrina Lista para Despacho</div>
+        <div class="hud-val" id="hudReady">Vasos Chonta: 2 | Patacones: 2 | Botellas: 3</div>
+        <div class="hud-sub" id="hudSpecial">Chontaduros Amarillos Legendarios (x5): 0</div>
+      </div>
+    </div>
+
+    <div id="viewSim" style="display:flex; flex-direction:column; gap:14px;">
+      <div class="stations-grid">
+        <!-- ESTACION 1 -->
+        <div class="panel">
+          <div class="panel-title">Estacion 1: Fogon de Lena y Paila (Cocina Caliente)</div>
+          <div class="card">
+            <strong>Estado de la Olla: <span id="potStateText">Lista para hervir</span></strong>
+            <p style="font-size:0.82rem; color:var(--muted);">Cocina racimos de Chontaduro o manos de Popocho y aderezalos con Sal del Pacifico y Miel de Monte.</p>
+            <div class="row-wrap">
+              <button class="btn btn-primary" onclick="cookBatch('chonta')">Hervir + Aderezar 2 Chontaduros con Sal y Miel</button>
+              <button class="btn btn-accent" onclick="cookBatch('popocho')">Freir 2 Porciones de Patacon / Tajada de Popocho</button>
+            </div>
+          </div>
+          <div class="card">
+            <strong>Mejoras de Trastienda</strong>
+            <div class="row-wrap">
+              <button class="btn" id="btnUpPot" onclick="buyUpgrade('pot')">Paila Doble de Cobre ($30) - Duplica produccion</button>
+              <button class="btn" id="btnUpAzotea" onclick="buyUpgrade('azotea')">Canoa de Azotea Nueva ($25) - +2 Hierbas por cambio de clima</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ESTACION 2 -->
+        <div class="panel">
+          <div class="panel-title">Estacion 2: Alambique y Mesa de Curado (Alquimia)</div>
+          <div class="card">
+            <strong>Destilacion de Guarapo a Viche Puro</strong>
+            <div class="row-wrap">
+              <button class="btn" onclick="distillViche()">Destilar Pimpina en Alambique (+2 Viche Puro - $8)</button>
+            </div>
+          </div>
+          <div class="card">
+            <strong>Mezclar y Embotellar Receta Chocoana (Tipo Schedule I)</strong>
+            <div style="display:flex; flex-direction:column; gap:6px; margin-top:4px;">
+              <button class="btn btn-primary" onclick="craftBottle('arrechon')">1. Arrechon Relampago del Atrato (Viche+Borojo+Coco+Miel) -> $22</button>
+              <button class="btn btn-accent" onclick="craftBottle('pipilongo')">2. Curado de Pipilongo Chocoano (Viche+Pipilongo+Clavo) -> $25</button>
+              <button class="btn btn-success" onclick="craftBottle('tomaseca')">3. Tomaseca de Sabedora (Viche+Azotea+Miel) -> $20 (Atrae +2 clientes)</button>
+              <button class="btn" onclick="craftBottle('borojo_hp')">4. Borojo Potenciado Motor 200 HP (Borojo+Miel+Coco) -> $18</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ESTACION 3 -->
+        <div class="panel">
+          <div class="panel-title">Estacion 3: Ventanilla del Malecon y Calle en Vivo</div>
+          <div id="customersContainer" style="display:flex; flex-direction:column; gap:8px;"></div>
+        </div>
+
+        <!-- ESTACION 4 -->
+        <div class="panel">
+          <div class="panel-title">Estacion 4: Muelle de Champas y Celular de Encargos</div>
+          <div class="card">
+            <strong>Champas Atracadas en el Barranco (Negua, Boraudo, Noanama)</strong>
+            <div class="row-wrap">
+              <button class="btn btn-primary" onclick="buyChampaCrate('chonta')">Comprar Bulto Chontaduro (+4 Chonta, 25% prob Amarillo x5) - $12</button>
+              <button class="btn" onclick="buyChampaCrate('insumos')">Comprar Canasto Selva (+3 Borojo, +2 Pipilongo, +3 Miel/Coco) - $14</button>
+            </div>
+          </div>
+          <div class="card">
+            <strong>WhatsApp / Celular del Puesto (Encargos Fluviales Grandes)</strong>
+            <div id="phoneOrderBox" style="font-size:0.83rem; color:#d1fae5; margin-bottom:6px;">
+              Encargo Activo: Lanchero de Bete y Bebarama pide 2 Botellas Curadas + 2 Vasos de Chontaduro (Paga $65 + 25 Rep).
+            </div>
+            <button class="btn btn-success" onclick="fulfillPhoneOrder()">Despachar Encargo en Panga ($65)</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">Bitacora en Vivo del Malecon de Quibdo (Efectos Festivos en los Clientes)</div>
+        <div class="log-box" id="logBox"></div>
+      </div>
+    </div>
+
+    <div id="viewRec" class="panel hidden">
+      <div class="panel-title">Recetario de Alquimia Chocoana y Efectos en la Calle</div>
+      <table>
+        <thead>
+          <tr>
+            <th>Receta / Producto</th>
+            <th>Ingredientes Requeridos</th>
+            <th>Precio Base</th>
+            <th>Efecto Sistemico en el Cliente (Calle / Malecon)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Arrechon Relampago del Atrato</td>
+            <td>Viche Puro + Borojo + Leche de Coco + Miel</td>
+            <td>$22 (x2 en Noche de Chirimia)</td>
+            <td>Efecto "Pura Candela": El cliente saca chispas doradas, baila chirimia al doble de velocidad y deja +100% de propina.</td>
+          </tr>
+          <tr>
+            <td>Curado de Pipilongo Chocoano</td>
+            <td>Viche Puro + Raiz de Pipilongo + Clavo y Canela</td>
+            <td>$25 (x2 en Aguacero Chocoano)</td>
+            <td>Efecto "Fuego de Selva": Escudo termico total contra el aguacero de Quibdo y +20 Reputacion VIP.</td>
+          </tr>
+          <tr>
+            <td>Tomaseca de Sabedora</td>
+            <td>Viche Puro + Hierbas de Azotea (Poleo/Cimarron) + Miel</td>
+            <td>$20</td>
+            <td>Efecto "Bendicion del Rio": El aroma del curado atrae inmediatamente a +2 clientes nuevos a la fila de tu ventanilla.</td>
+          </tr>
+          <tr>
+            <td>Borojo Potenciado Motor 200 HP</td>
+            <td>Borojo de Selva + Miel de Monte + Leche de Coco</td>
+            <td>$18 (x2 al Mediodia Picante)</td>
+            <td>Efecto "Motor 200 HP": Favorito de los motoristas de panga del Atrato y San Juan; recarga energia inmediata.</td>
+          </tr>
+          <tr>
+            <td>Vaso de Chontaduro con Sal y Miel</td>
+            <td>Chontaduro Hervido + Sal + Miel de Monte</td>
+            <td>$12 (x5 si es Amarillo Legendario)</td>
+            <td>Efecto "Sustancia Chocoana": Calienta el cuerpo bajo el aguacero y mantiene la fila contenta.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    const PHASES = [
+      { id: 0, name: "1. Manana de Champa (Brisa del Atrato)", bonusTag: "chonta", desc: "Llegan las champas de Negua y Boraudo: +50% pago en Chontaduro y Borojo" },
+      { id: 1, name: "2. Mediodia Picante (Sol de Selva)", bonusTag: "borojo_hp", desc: "Calor humedo en el malecon: +100% demanda y propina en Borojo Motor 200 HP" },
+      { id: 2, name: "3. Aguacero Chocoano (Tormenta Pluvial)", bonusTag: "pipilongo", desc: "Aguacero cerrado en Quibdo: +100% pago en Curado de Pipilongo y Chontaduro caliente" },
+      { id: 3, name: "4. Noche de Chirimia en el Malecon", bonusTag: "arrechon", desc: "Fiesta de San Pacho en la calle: +100% propina en Arrechon Relampago y Tomaseca" }
+    ];
+
+    let state = {
+      money: 45,
+      rep: 120,
+      phaseIdx: 0,
+      audioOn: true,
+      doublePot: false,
+      upgradedAzotea: false,
+      raw: { chonta: 5, popocho: 4, viche: 5, borojo: 4, pipilongo: 3, mielSal: 6, cocoClavo: 4, azotea: 4 },
+      inv: { chontaVaso: 2, chontaLegend: 0, patacon: 2, arrechon: 1, pipilongo: 1, tomaseca: 1, borojo_hp: 1 },
+      customers: [
+        { id: 1, name: "Motorista de Panga (Ruta Beté)", wantKey: "borojo_hp", wantLabel: "Borojo Motor 200 HP o Chontaduro", basePay: 18, mood: "Esperando en el barranco" },
+        { id: 2, name: "Clarinetista de Chirimia", wantKey: "arrechon", wantLabel: "Arrechon Relampago o Curado de Pipilongo", basePay: 22, mood: "Afinando el clarinete" },
+        { id: 3, name: "Sabedora de Boraudo", wantKey: "chontaVaso", wantLabel: "Vaso de Chontaduro con Sal y Miel", basePay: 14, mood: "Bajo su paraguas" }
+      ],
+      logs: [
+        "Abriste la ventanilla del puesto en el Malecon de Quibdo. Cocina en la paila, mezcla botellas curadas y despacha a la fila."
+      ]
+    };
+
+    function playSound(freq = 440, isCelebration = false) {
+      if (!state.audioOn) return;
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        const ctx = new AudioCtx();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = isCelebration ? "sawtooth" : "triangle";
+        osc.frequency.setValueAtTime(freq, ctx.currentTime);
+        if (isCelebration) {
+          osc.frequency.setValueAtTime(freq * 1.25, ctx.currentTime + 0.08);
+          osc.frequency.setValueAtTime(freq * 1.5, ctx.currentTime + 0.16);
+        }
+        gain.gain.setValueAtTime(0.12, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.26);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.26);
+      } catch (e) {}
+    }
+
+    function toggleAudio() {
+      state.audioOn = !state.audioOn;
+      document.getElementById("btnAudio").textContent = "Audio Chirimia: " + (state.audioOn ? "ON" : "OFF");
+    }
+
+    function setTab(t) {
+      document.getElementById("viewSim").classList.toggle("hidden", t !== "sim");
+      document.getElementById("viewRec").classList.toggle("hidden", t !== "rec");
+      document.getElementById("tabSimBtn").classList.toggle("btn-primary", t === "sim");
+      document.getElementById("tabRecBtn").classList.toggle("btn-primary", t === "rec");
+    }
+
+    function advanceTimePhase() {
+      state.phaseIdx = (state.phaseIdx + 1) % PHASES.length;
+      if (state.upgradedAzotea) {
+        state.raw.azotea += 2;
+      }
+      playSound(330, false);
+      state.logs.unshift("Cambio el clima en el rio Atrato -> " + PHASES[state.phaseIdx].name + ". " + PHASES[state.phaseIdx].desc);
+      render();
+    }
+
+    function cookBatch(type) {
+      const mult = state.doublePot ? 2 : 1;
+      if (type === "chonta") {
+        if (state.raw.chonta < 2 || state.raw.mielSal < 1) {
+          state.logs.unshift("Te falta Chontaduro crudo o Miel/Sal en la bodega. Compra en el Muelle de Champas.");
+          render();
+          return;
+        }
+        state.raw.chonta -= 2;
+        state.raw.mielSal -= 1;
+        state.inv.chontaVaso += 2 * mult;
+        playSound(392, false);
+        state.logs.unshift("Herviste y aderezaste +" + (2 * mult) + " Vasos de Chontaduro con Sal y Miel de Monte.");
+      } else {
+        if (state.raw.popocho < 2) {
+          state.logs.unshift("Te falta Popocho verde/maduro en bodega.");
+          render();
+          return;
+        }
+        state.raw.popocho -= 2;
+        state.inv.patacon += 2 * mult;
+        playSound(349, false);
+        state.logs.unshift("Freiste +" + (2 * mult) + " porciones de Patacon y Tajada de Popocho.");
+      }
+      render();
+    }
+
+    function distillViche() {
+      if (state.money < 8) return;
+      state.money -= 8;
+      state.raw.viche += 2;
+      playSound(440, false);
+      state.logs.unshift("Destilaste guarapo de cana en el alambique: +2 botellas de Viche Puro del Atrato.");
+      render();
+    }
+
+    function craftBottle(kind) {
+      if (kind === "arrechon") {
+        if (state.raw.viche < 1 || state.raw.borojo < 1 || state.raw.cocoClavo < 1 || state.raw.mielSal < 1) {
+          state.logs.unshift("Insumos insuficientes para Arrechon Relampago (requiere Viche, Borojo, Coco y Miel).");
+          render();
+          return;
+        }
+        state.raw.viche--; state.raw.borojo--; state.raw.cocoClavo--; state.raw.mielSal--;
+        state.inv.arrechon++;
+        playSound(523, true);
+        state.logs.unshift("Alquimia exitosa: Embotellaste 1 Arrechon Relampago del Atrato (Efecto: Pura Candela +100% propina).");
+      } else if (kind === "pipilongo") {
+        if (state.raw.viche < 1 || state.raw.pipilongo < 1 || state.raw.cocoClavo < 1) {
+          state.logs.unshift("Insumos insuficientes para Curado de Pipilongo.");
+          render();
+          return;
+        }
+        state.raw.viche--; state.raw.pipilongo--; state.raw.cocoClavo--;
+        state.inv.pipilongo++;
+        playSound(587, true);
+        state.logs.unshift("Alquimia exitosa: Embotellaste 1 Curado de Pipilongo Chocoano (Efecto: Fuego de Selva contra el aguacero).");
+      } else if (kind === "tomaseca") {
+        if (state.raw.viche < 1 || state.raw.azotea < 1 || state.raw.mielSal < 1) {
+          state.logs.unshift("Insumos insuficientes para Tomaseca de Sabedora.");
+          render();
+          return;
+        }
+        state.raw.viche--; state.raw.azotea--; state.raw.mielSal--;
+        state.inv.tomaseca++;
+        playSound(659, true);
+        state.logs.unshift("Alquimia exitosa: Embotellaste 1 Tomaseca de Sabedora (Efecto: Bendicion del Rio).");
+      } else if (kind === "borojo_hp") {
+        if (state.raw.borojo < 1 || state.raw.mielSal < 1 || state.raw.cocoClavo < 1) {
+          state.logs.unshift("Insumos insuficientes para Borojo Potenciado Motor 200 HP.");
+          render();
+          return;
+        }
+        state.raw.borojo--; state.raw.mielSal--; state.raw.cocoClavo--;
+        state.inv.borojo_hp++;
+        playSound(493, true);
+        state.logs.unshift("Alquimia exitosa: Preparaste 1 Borojo Potenciado Motor 200 HP.");
+      }
+      render();
+    }
+
+    function serveCustomer(idx) {
+      const cust = state.customers[idx];
+      if (!cust) return;
+      const phase = PHASES[state.phaseIdx];
+      let servedItem = "";
+      let pay = cust.basePay;
+      let effectMsg = "";
+
+      if (cust.wantKey === "arrechon" && state.inv.arrechon > 0) {
+        state.inv.arrechon--;
+        servedItem = "Arrechon Relampago del Atrato";
+        pay = phase.id === 3 ? pay * 2 : Math.round(pay * 1.5);
+        effectMsg = "¡EFECTO PURA CANDELA! " + cust.name + " saca chispas doradas, baila chirimia al doble de velocidad por el malecon y deja propina doble.";
+      } else if (state.inv.pipilongo > 0 && (cust.wantKey === "arrechon" || phase.id === 2)) {
+        state.inv.pipilongo--;
+        servedItem = "Curado de Pipilongo Chocoano";
+        pay = phase.id === 2 ? pay * 2 : pay + 10;
+        state.rep += 15;
+        effectMsg = "¡EFECTO FUEGO DE SELVA! " + cust.name + " queda blindado contra el aguacero de Quibdo (+15 Reputacion VIP).";
+      } else if (cust.wantKey === "borojo_hp" && state.inv.borojo_hp > 0) {
+        state.inv.borojo_hp--;
+        servedItem = "Borojo Potenciado Motor 200 HP";
+        pay = phase.id === 1 ? pay * 2 : pay + 6;
+        effectMsg = "¡EFECTO MOTOR 200 HP! " + cust.name + " sale corriendo al muelle con energia maxima para remontar el rio San Juan.";
+      } else if (state.inv.tomaseca > 0) {
+        state.inv.tomaseca--;
+        servedItem = "Tomaseca de Sabedora";
+        pay += 12;
+        effectMsg = "¡EFECTO BENDICION DEL RIO! El aroma de las hierbas de azotea convoca nuevos clientes al puesto.";
+      } else if (state.inv.chontaLegend > 0) {
+        state.inv.chontaLegend--;
+        servedItem = "Chontaduro Amarillo Legendario de Boraudo";
+        pay = 55;
+        state.rep += 20;
+        effectMsg = "¡RAREZA LEGENDARIA SERVIDA! Todo el malecon aplaude el Chontaduro Amarillo Gigante ($55 Patacones).";
+      } else if (state.inv.chontaVaso > 0) {
+        state.inv.chontaVaso--;
+        servedItem = "Vaso de Chontaduro con Sal y Miel";
+        pay = phase.id === 2 ? pay + 8 : pay;
+        effectMsg = cust.name + " disfruta su Chontaduro caliente con Sal y Miel frente al rio.";
+      } else if (state.inv.patacon > 0) {
+        state.inv.patacon--;
+        servedItem = "Patacon de Popocho con Queso";
+        effectMsg = cust.name + " se va feliz comiendo Patacon de Popocho.";
+      } else {
+        state.logs.unshift("No tienes productos listos en la vitrina para atender a " + cust.name + ". Cocina en la Estacion 1 o mezcla en la Estacion 2.");
+        render();
+        return;
+      }
+
+      state.money += pay;
+      state.rep += 5;
+      playSound(587, true);
+      state.logs.unshift("Vendiste " + servedItem + " por $" + pay + " Patacones. " + effectMsg);
+
+      const poolNames = [
+        { name: "Barequero de Negua", wantKey: "chontaVaso", wantLabel: "Vaso de Chontaduro con Sal y Miel", basePay: 14, mood: "Recien bajado de la champa" },
+        { name: "Bombardinista de San Pacho", wantKey: "arrechon", wantLabel: "Arrechon Relampago o Tomaseca", basePay: 24, mood: "Listo para el bunde" },
+        { name: "Lanchero del San Juan (Istmina)", wantKey: "borojo_hp", wantLabel: "Borojo Motor 200 HP o Pipilongo", basePay: 20, mood: "Prendiendo motor fuera de borda" }
+      ];
+      const replacement = poolNames[(idx + state.rep) % poolNames.length];
+      state.customers[idx] = { id: Date.now(), ...replacement };
+      render();
+    }
+
+    function buyChampaCrate(kind) {
+      if (kind === "chonta" && state.money >= 12) {
+        state.money -= 12;
+        state.raw.chonta += 4;
+        const gotLegend = Math.random() < 0.35;
+        if (gotLegend) {
+          state.inv.chontaLegend += 1;
+          playSound(784, true);
+          state.logs.unshift("¡SUERTE DE CHAMPA! En el bulto de Boraudo salio 1 Chontaduro Amarillo Legendario sin espina (Se vende a $55 en ventanilla).");
+        } else {
+          playSound(330, false);
+          state.logs.unshift("Compraste bulto de Chontaduro en el barranco (+4 Chontaduros crudos).");
+        }
+      } else if (kind === "insumos" && state.money >= 14) {
+        state.money -= 14;
+        state.raw.borojo += 3;
+        state.raw.pipilongo += 2;
+        state.raw.mielSal += 3;
+        state.raw.cocoClavo += 3;
+        playSound(392, false);
+        state.logs.unshift("Compraste canasto de selva pluvial (+3 Borojo, +2 Pipilongo, +3 Miel/Sal, +3 Coco/Clavo).");
+      }
+      render();
+    }
+
+    function buyUpgrade(which) {
+      if (which === "pot" && !state.doublePot && state.money >= 30) {
+        state.money -= 30;
+        state.doublePot = true;
+        state.logs.unshift("Instalaste la Paila Doble de Cobre: ahora cada horneada produce el doble de vasos y patacones.");
+      } else if (which === "azotea" && !state.upgradedAzotea && state.money >= 25) {
+        state.money -= 25;
+        state.upgradedAzotea = true;
+        state.raw.azotea += 3;
+        state.logs.unshift("Sembraste una Canoa de Azotea nueva con Poleo y Cimarron (+2 hierbas automaticas cada cambio de clima).");
+      }
+      render();
+    }
+
+    function fulfillPhoneOrder() {
+      const totalBottles = state.inv.arrechon + state.inv.pipilongo + state.inv.tomaseca + state.inv.borojo_hp;
+      if (totalBottles < 2 || state.inv.chontaVaso < 2) {
+        state.logs.unshift("Para despachar el encargo fluvial a Bete necesitas al menos 2 Botellas Curadas y 2 Vasos de Chontaduro en vitrina.");
+        render();
+        return;
+      }
+      state.inv.chontaVaso -= 2;
+      let toRemove = 2;
+      ["arrechon", "pipilongo", "tomaseca", "borojo_hp"].forEach(k => {
+        while (toRemove > 0 && state.inv[k] > 0) {
+          state.inv[k]--;
+          toRemove--;
+        }
+      });
+      state.money += 65;
+      state.rep += 25;
+      playSound(659, true);
+      state.logs.unshift("¡ENCARGO FLUVIAL DESPACHADO! La panga salio hacia Bete y Bebarama con tu pedido (+$65 Patacones y +25 Reputacion en el Atrato).");
+      render();
+    }
+
+    function render() {
+      const phase = PHASES[state.phaseIdx];
+      document.getElementById("hudMoney").textContent = "$" + state.money + " Patacones ($" + (state.money * 1000).toLocaleString() + " COP)";
+      document.getElementById("hudRep").textContent = "Reputacion en el Atrato: " + state.rep + " pts";
+      document.getElementById("hudPhase").textContent = phase.name;
+      document.getElementById("hudDemand").textContent = phase.desc;
+      document.getElementById("hudRaw").textContent = "Chonta: " + state.raw.chonta + " | Popocho: " + state.raw.popocho + " | Viche: " + state.raw.viche + " | Borojo: " + state.raw.borojo;
+      document.getElementById("hudHerbs").textContent = "Pipilongo: " + state.raw.pipilongo + " | Miel/Sal: " + state.raw.mielSal + " | Coco/Clavo: " + state.raw.cocoClavo + " | Azotea: " + state.raw.azotea;
+
+      const totalBottles = state.inv.arrechon + state.inv.pipilongo + state.inv.tomaseca + state.inv.borojo_hp;
+      document.getElementById("hudReady").textContent = "Vasos Chonta: " + state.inv.chontaVaso + " | Patacones: " + state.inv.patacon + " | Botellas Curadas: " + totalBottles;
+      document.getElementById("hudSpecial").textContent = "Chontaduros Amarillos Legendarios (x5 valor): " + state.inv.chontaLegend + " | Arrechon: " + state.inv.arrechon + " | Pipilongo: " + state.inv.pipilongo + " | Tomaseca: " + state.inv.tomaseca + " | Borojo 200HP: " + state.inv.borojo_hp;
+
+      document.getElementById("btnUpPot").disabled = state.doublePot || state.money < 30;
+      document.getElementById("btnUpAzotea").disabled = state.upgradedAzotea || state.money < 25;
+
+      const custEl = document.getElementById("customersContainer");
+      custEl.innerHTML = "";
+      state.customers.forEach((c, i) => {
+        const div = document.createElement("div");
+        div.className = "card";
+        div.innerHTML = `
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <strong>${c.name}</strong>
+            <span class="pill">Base $${c.basePay}</span>
+          </div>
+          <div style="font-size:0.8rem; color:#d1d5db;">Pide: ${c.wantLabel} (${c.mood})</div>
+          <button class="btn btn-primary" onclick="serveCustomer(${i})">Despachar por Ventanilla y Cobrar</button>
+        `;
+        custEl.appendChild(div);
+      });
+
+      document.getElementById("logBox").innerHTML = state.logs.map(l => `<div class="log-line">${l}</div>`).join("");
+    }
+
+    render();
+  </script>
+</body>
+</html>
