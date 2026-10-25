@@ -1,0 +1,1441 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Maestro Vichero del Malecon 3D [Simulador de Quibdo PSX]</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+    html, body {
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      background: #0F141C;
+      font-family: 'Chakra Petch', 'Space Grotesk', 'Montserrat', system-ui, sans-serif;
+    }
+    #gameCanvas {
+      width: 100vw;
+      height: 100vh;
+      display: block;
+      cursor: crosshair;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="gameCanvas" width="1280" height="720"></canvas>
+  <script>
+  (function() {
+const PAINTED_TEXTURES_B64 = {"adoquin": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgBAMAAACBVGfHAAAAMFBMVEXfm2PVjVbQfk3Ee0nHcUTAbT63b0C7ZTq0YjquYzmuWjKoWzSkVC+iTiacTiqWSCS/UEicAAAB3UlEQVR42gXBP0wTURwH8O/vvXNs773GlXjX6lg5eoXVxJLg4qIgOBuju0U0cfQPUJxJdHExNqXO/mtQRzmLL7Bowl1bGIm9d9T13fPzoTI6tnOybZfZW/dJvnzgAFqw68MpoYdMCQ3g3SOgH3uyewR0tiUTqihQSEdCjgCdMZKlxuwGrsL9asMeJGfCBvu5BxwI3tdpaJy5bYxu3eQPsWm21kpwmY88dyuGBAhmOlaQYdyXshsBz9YJ0SsHQzZNJAZk0wzCaKo0Dn9jKWjpFRylNthlvqoSoLQ0QUEHnFGdPhx//jU/9VO3zO2z1dgRtoTUn/n7HSpAFQCtrUv54zXJzvuajPYks/4BwF0LZkewE03z6R01cEuzbbaIx7Sxx2ZKb5BniDJb8yAu3EXz45f5Zp5erPeihafj00VGhyaEKeTC0OVvRJogP7E6OslOvlDc1Bu+Q+kugJgSJhLAZxTOoTi8ohKU+enQYsDGN2r7uQq4CIPMBnBZZStfPEvur1NiH8jzUd+BmZ4YaK+czygeQxKe8xfUGd9DEy9lSzQYJgBSmWX/uBxYDZK4VB3pGnawxP9koWKaqmrgc04EnGllqHmt1A3KWCn2kvbJKm87sHlgzDnPCqvgHQf/AcXY17c7ElgBAAAAAElFTkSuQmCC", "catedral": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgBAMAAACBVGfHAAAAMFBMVEX16s/w3sbq3sDq2MD50Wzj1LnezLTLzLLWxq70xhDYt4Gjcy28UTRUMBxOKhY7IiB/+LeNAAACBElEQVR42l3R32tSURwA8O859zhFU8+9RNvU9LrpFltNcRURMa6bD8UYCL30EHtYD1H/QG9j7KGHHmoQvcboLaIm/YAgWpcRQWBqrKhV3q66URhezx0FblfP6bk+/8IHTRp2ylTrPKh8B5ApoBz8Cz3fTIPzMQ0Avc009J6gC+OrwUS6fPXMaWmuhBvHsM5bTP/65tSHRbOrFyGCNbJa01BiuTOt1v1Ni2C9mvdsiKXZ5T6Tr/xROJ5KFPbVROHZYmcqueTjgmyMLQRMXly/3tT9NTeAdHTEF5NcrsGLKz+HQplwgBjiZdQTvf0qbvWHH4D7CjqbpfBwRp91wVqWOsQm5t4Nluw0bwXM0a2K2XeOTCBtt0bURgqrEspBQvrVXzB+K1+sSmA7/Ja/DktzRwadlPdTNsTGR93DmbjU9RVa0slS2ZDfH9raLp6QcmPelHdv9/780+PJz3iyg3Xn21ol8mNIuWnWylbpMJloKAqRHjMaoGgGCJbuVK9dir7LDLQ90d7l8yMt/Cges2mICtm+iyim+/heHclQpbaQdaA0apA8AOPDjAKbBiYcjNcFo9AVrE1LADKNYC0OAhMKMssAACekMCBs4IiKoHGQtp0uzscgyLEAhLAqKHVhHSGEHWAAFjDGezgPtA07EBSQAURxHTS/YejEaFVb2gHLqBD04r/9vyTo0La56oPSAAAAAElFTkSuQmCC", "casa_madera": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgBAMAAACBVGfHAAAAMFBMVEX15MD42JDzwWXqqT3dmTLXXkHNVDqfYTKPVCrDSzJ6RiNiNx1aMBg9OjtUKhIhOU92qPqZAAABaElEQVR42l2OsWpUURCGvznngEKCOyebOsbSInBvdgvLDW7rS1j4CvEFfAULC7ERLH2BxU2hjS73wpZiIkIaMd5ZFwRxT8biRsFM8883zP/PyIj/K5HBFBdfqSme8BmQKjYtMJWADdzd3XF367qQBUByVoAsyRXAjW0AI1kf7lgvKQMgMigAmeT9hvb6z+Id5coyZSFwY8ovAY6R42uvy73rg1eogRqghlro+78MCdMr7s8GMEx7ViCt2oMTqDiBQhWRp/ExcPNB9f418CSmhq0Xun/XG/vY1G9feqhrdmjSeKwhN9VwNxH9orZSIu1l5iCmxkTODmlsu+iP89ZTHd/5+hPj8nt0Wq3PCRFGCKVl4aefl22YzWhvQdO1wzuwIUwmUowoU75zm5rE0oVAtaj8S4FRmH+Lg8OLMrd53lvz5kO4f1TOni3jZKib51/3j1JajNjZvQSq+NB/tlEedcLAdKWdsnLkD3oImaejQ6OPAAAAAElFTkSuQmCC", "casa_colonial": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgBAMAAACBVGfHAAAAMFBMVEX88Nj86tL26s/25Mzw5Mnw3sZQr8s8pMQ8nLymbkg2lrYwkLKFVDRTMBtMKRRCJBIYtGaoAAAB0klEQVR42lXBzWsTQRgH4N87O1aikn0nW0gjNNlki9KTbfBYxTYV8ShVPIkHRf8dr/4H9eRZWjR4qCA2qQfFYpvdfPSDBHcmUTTUZMazz0O5pQDNVGQj7VQrl028QqTH816oGteCnUx/seDNnoTf8p2s+HO+D1doZ2izE3Iq0Ko2Qg/TTpGe442cJFfuYfriZr1Sg/A5/RhbMjCD7cFbx2Jt1mkMu/dV0ca5tLIuRlOhEmt/CJtDXMFU7uqSr3TpHU8T5R/p1wJURowEBsyG4cvl3EYSDqONvd/sRBJAoIEKASkqOmZBy7Jpyukoe9A0p498w98PpFa/Hli5aoCoWF+PfE8ddQtxaefr8WDO4wvWeG64uJfJjOfyMz9n8sef571ozJeNKrdHoRqfVNQ+PSM4kE+GNTkFLW/znRDi6mP68qq30nsayMPo4ja74g2xsAvq7TupP606gxWt+3cN7JYSWicKqDs1MUpJQK55p8YxVXEJxsdCUXiHdcdUg2gQE9uu3FIlBiZNd+a0msQsWdPQEUACMDNsZBUfGLpdC88AZ4JAiqSsCR0LSwzPLkntO7AuKf3XaZKqLYAETgGwCj4ACeSfvBfnAFwXrVsPQS/xv38F6c42ulB8hQAAAABJRU5ErkJggg==", "rio": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgBAMAAACBVGfHAAAAMFBMVEXLy55yn6k0h7wqhLorfLMkea8kcqgecqggbKEeZpoYZpseYJYYYJYYYJAYWpASWo4sHvOCAAACHUlEQVR42gXBTUzTYBgA4LfvVwfKz762A002WdkEDYh2GwFiQgDBO1NDwoE4I4nx7t1404NHE2/qVU2GJxMSEGIwZG5dZ/wLylp+AoisazdhKPb7fB5C/0w8nwY4//B2Pft7610I8Xpf05wOY79XfuXrwuYuUjL8NudUNsedNAxNwyIqagIYE7TSEbTI1gJFbuWSZdNppBsRiXPbQJsJ6WEo+9yYxFV3fITwPN57r584GT2rb1dCNEfqa727x/1bh6OZJoNHk1tksuAOJLxvO4E7pz7ry60qmTAh6P2zd+yuYCV9EOoU5bi5Oq7aZn6tWkfdf6PkVXH5Zxz441qie8NfUSIoAND16ioA0TRLsjlyvbQGGpeiG0cfBSYL4qN551yquRBRpqqeSQI9+ME5dp+9dLDTP6tDLFUWF4Rr2utZtyPlWvNuvzCDeEaKlvJCPJf9bvqko1lUo73PGHcxlX0Kd5MGRUe+esHi4C160ALUXkCpXDT2TLeVRyMS+3EZkPvxoh+ckk+AZkOKq1h8seK7IjVaNDBiszQqpL62n/xKt4Xm0SXrsKPhgEwWsGFwL++JlwaWvmT6w+SJ6fDu2v4aDm6Jb/aVIayoXtG4KbPMitxCweVIw9Ruq7aX7RklHo8wjloFYm7TaUcI+w2gTCbBrL7Z92mzEGpLstx6UERt3glMsYKcSGTnDIh1iQ8c3w1FMgjtyawq7WPd/wFjt/kC6KH/OAAAAABJRU5ErkJggg==", "chontaduro": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgBAMAAACBVGfHAAAAMFBMVEX6wyn5sCd3jzHCgShmgSf6eCL7ciX5bCX3bB72Zif3Zh32YCTwYh7wWh7sUhvjQRZBlUJgAAAByElEQVR42i3IwU4TURQG4P+ce4cQg/Z2WtxI6bRKDDGprYnGRMUSjCslxAVLjW/gK8jCtfEJjI+gceeGhTvUEVwYpGUcYWPszMgEhLZzjgvNt/voQiCxgKUpLCyxGJdm9YN6KUvdri9R3TFzMwYiBAgAxMyYBRAxxwwAAUBlcuTwTxmOFQBAIACkAOP/KIEUIAaUlFQBKAA1z56fe9V5Onx8/WW+dvHJ/AtOs35aoIC+dlHkY93c6Oc7Xya/z4cn6fH0wb7PK+lShvBWWCTFcraJ2FQmp7Ozsnc4wxPbyZ3q2Fwayik5Tvz94dHUYdyzHJwJF6IHSDKXJdlDCIdB+20g2RWsoA1kwsBWLdxC3+QmwhvUmG4XBVpUk2/Fsrlv2szrtEi/uIPLlGMgR4wuvaeIU4TUk4i2WWAW0Bg30NUuFhU8EaGHNiqdPTb4gVWWJubUs/lu3ffbDXzge9ZpdbMld+04BfuWP0sQ30RSeVd2frP8qGGX/Cluzp1Q69MqzVL+h3aoqG7MneYNO+N9vTawVqpjBKWP57lT8FVGmX56I2/kjbyxLf0WGli2MM6A4GPghPzAwiUADOAkM04B0VRFVVNNNFHRvy4jyvZjDKleAAAAAElFTkSuQmCC", "borojo": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgBAMAAACBVGfHAAAAMFBMVEWRXTGKVCyFTid+Tip+SCR4SCp4SCR4SB5ySCh4QiFyQiNyPB1sQiRsPB5lPSFeNR0QBwybAAACK0lEQVR42gEgAt/9ANbf/sre7/ht7/+q7v5qz/4BzAAj2+RA4Q/wH+/lLt0w8AIzHkfFOqLfILbBI+CuM+l+Au8AXh8EtPPwDcDxKOD/BeAE6tDGBCwiaelGF7AL6w5RuwBiZcxTOuyqdM7JKV7gGawOAtAwAg/pAPq1Mr37UOPnwP4DK9fQRsB6/udLMuDCJ/INkgM7A87pjtT+I+zHavGgAgWWAitv7hxL6y+1/tkkvwYp/t0ANTMRNaASRqoSEDohEqgxJAEzEGN87iX/EAbp7yTt4RINAu/mJvATCA6+7gDw8lP+7ZICHtqOD99oIBAAIf/oyxAAAAESTsECAQAQLq422x8GzE+zAkPyAAcy/eJBEN004stKoA0C3v//G/4BEOAB4FXu//kw4AMLCu/j7QAdAtAa/fgi6uAHAw/O9TTha/6vWQymGhfcDWsC8CbF4RIj0BPuARAFAQLyzwIz6jzi8usAAA7dMzFAIPsOAxZ/zVMWrwxZvOUowshz1tgClAED143vSEARNKsR8Bsi4gJpAO8w4CHt5f9QqgA3zN4iAZOjVAmgmbbEZPnRxBvv81AC4UZiD/ci/v4kIJ52cgAIZwI1uQEEQOAjMh4XIgAFAiveAc7YBDSq3fOUfpbIAtsp12gC81J8EXgtVuD4TCTZxS4hOQIL8EAA/hQuIHIgAjjg8wQAAc//Qt4u0vDsAwLdQBDg8CACB+Dv31IRDPMiLhETAtEiE/zm90x9q1a1AAAAAElFTkSuQmCC", "popocho": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgBAMAAACBVGfHAAAAMFBMVEX6xj/1wDzwuj3vujbwtDrqtDjqtDDqrjXkrjLfqC/eoi3YoivVnCmJYCZuSCJpQh1HOgtdAAAB3ElEQVR42gXBz04TURQH4N85txAXlrkDrFRkWtSF2s5QInEl4AMo0Z0JCfgIxsT3MK5NDSt3xpUaTcDuCNPe0oQdZaiuxLZnCjH+6czx+2hAHkEUPoZWyEMBHg0BskNAbEpDhggsWbHkU2oV5tGL0+Kzj1fevrr0odH7/fyU0XE5KiZGd247MBk4r4Rp5Y0sd2qHWZK6JhPId7ft3l/dKwa6tMZxI1ZtxEsz7UnIkUs5miM5WPcQ2JtyjClwLKEdCNWT485Z2+9mbNOXsf2UV+FXxuFpUOdf+cOZEaZzkxO3Cr0a/+GdH/kNJE19d/WApMLX4E2W3X5UTB9gI8k63O9HeTePnEwlLbpsPvO5ea3lW9+Q7appu+wxS/a0dJTgmFY78ISabP39A7pOJSDLUgnBxfLEvaA3X2MumWrZhYVR98KodffEhXkvchm9576qZ4MQ3ynomhVYjmidUXS1MWoTOr6zyWf3d1oLjdJPo/F89eRfuyBfZxdl2fJCacmY4Jw5WoVWW9xMTsYuMNGAO24Rbks3L8psP/G+rLO/sYKtOmYLa9Z6UzPCur0rCFUiTSbpMGIONml6m0YuosqToBSDBqQAyBPAplAwlAAo4IM8+CjAQghIodBUh/Y/i9HeUQddipUAAAAASUVORK5CYII=", "viche": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgBAMAAACBVGfHAAAAMFBMVEX568fy5MDzwyGIqWoklkq7hTG6fiq0ficmgk62bSXKWB+jcTGuWh6VaDMeeEhKTHbcOHczAAABYUlEQVR42lWNv4oTURxGz/fLZRBR7p1YumB8ADGLrYWFXepYZJupUln4CJY+QxCcysY3sNEX8A9s6+pkqzTuvaOFOGzmZ6FI9nQHPs6nM6CbjTZiABgj3Qzj/K+jM/4zGvzbASNYB2jJVcKDNyzXsGkWnDQbGmugGmhp4e2wrioDBjZDBTxqodWLx7A/vcfk8xz2kyPtvjw/SF57aO3Vk3Xg49cDvz6we+UHXF4E+ik5yem99v720/DyRlad04YnFOc7Fo5r93qAVl6nW5U1ODgg5H1ZBT5Ruyp4FlXib4xjslzNL8e9pNfhkr5+J5z36H76iQWP4A6C1N8crEUuIRyXTyrttpwyB/aTD5M5R9otOAFWLFhSrVqtRdwyu7AE4Dl4/LGd4VMvURSfBrOURsNLTVaiM+8o50WKQOzAUoKYvhVzRMp3gkaP4m7ONYnI1ooVOYXk3mWRLLlQjqgo4fAH8mycWX0lfwYAAAAASUVORK5CYII=", "palma_tronco": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgBAMAAACBVGfHAAAALVBMVEWQYDaQWjaKWjaKWjCKVDCEVDCEVCqETip+Tip4TipySCpySCRsQiRsQh5mPB7gtfKNAAACKUlEQVR42gXBS0zTYBwA8P6/fkMMc23XxoAM6GMTE3FsYLiwBzQaSUxM8HUziDE7GQ8GbyYePXjQcDRGjV51CYkXkzG3BRJFmGOegLm13RbjgK6dJLpHV38/oDlvd1wNvJaLASexfE5DPtGZeKXaRDuc1d48bFyHolWvRCEx8R0skufjGPStoJ7zFsHmxdT+Nd0NN8SD/PzyQq5UDOfNyd3b5GAPG3h85MlHyjezoyrXgoKOraJvU1ZcSMiOaAYkx0xW6WDdPVg1AgmpC3ekt+ED7D0RN7VHyf5NA2JJ2dX5+w0xfRz1w/LVYMP0lzW/LnyWUzyftmjEs9gI5fhtrM1SpZlgGWJJYWytcXyukBvJLj1vL4IjaDp98fv0M8Jm3IfeLhx2HEpBNlzlEa2AIkSanCrbXaV3l9rR7DbT+3USztSJaakgffS4/bAaPfYCt+4BflkJtEM9B0m6TnAQd+k8IZbKHj7vV+1KB7kanHBksMMsptJsJeTF60+uvF9K1yTb4BThy9U4eb6ZEX0wMEA7f5vFKX0BajkGbEIVlUg6qpUYC+EjU1Tqw3v+TDRH1zsBmOvNQJeUE3h6rS+2xbpJV7V569fdDTT67+xlHaUk2FdUQaWYn7PdtE3TlSGEgAdPcF8yVqJoAmYIOL34IZSR8Z6/vnIBqWPvyAdPtSazBanw4cQn/lTVhuzw6kUjK9tWJlriEtQf8tKQQ98ZXxe2+xv2yT6q9R9U5/g0LJHc1QAAAABJRU5ErkJggg==", "palma_hoja": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgBAMAAACBVGfHAAAAMFBMVEXEnDZxljhmkjRgjS9aijZaijBahDBUhDBUhCpUfjBUfipUeCpOfipOfiROeCpKciRfeAbzAAACK0lEQVR42gEgAt/9AYobB/7M1EJENm4W6uEgFQIEOGAQ8AAU0fQE8O6xIM0AAgPiU0/wGDER49U2cQEDmMwFAU9MUwvw/d6MuE8SNlqgBkkCHw+G5G3BwRACUAzHs9/bAgBiMhMSIhiogApNwzISMiMcBEEjQQGgD87a/QuyKDJGoPACDDop9zd/0gAADQmkOu9UsAFPPejo8BsRyMXImgNefBGlAYKhDvIP6EIkh0UVsRAB/vUDQiEThAdY2fPUnvKAE285yQQGi/ry89/uOP224WN1AMDNBPZoX8LuFDTgAPn+5G4A9UsExM6sEP8EQBAAFv1WAP8A6wMgrwB5NxIMSqJA+y35RjjIBArBdBbs6hPAADzr6nSxXBYEJO9sAwzzAfgGo0DkbG1qkQQTq98fAAYjMLUe3LTyyA9EAkERUyaWLgzgAkHhFzRGNtoAS5/+6fvqp3AHV6+/77/+9wRgnMvggHwWRAFT/cgNDsztAaFxId4QCSv7vTkbsgAPEPoDEgqKOegNPjKyUd54EACOqQBem++f//rYYAZMrvv+/umVBDHJ8ri3Eg3w/gCsx+XwHU0E482//gD2cAADHAqs8QHYzwRgFvLiGFOAWboU7kfsE0WRBHmeEsT6LQ7A+8wHTB4CRAgEQ2EqNKKTLsYIHyAvihYfMABxEyISMhqkwAdGwRITISM2AlFEtlRFbqMA/hCDc8o1Ut8E7GghMyUqz8ADIlg9s6m6IZLs5My9nUg8AAAAAElFTkSuQmCC", "madera": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgBAMAAACBVGfHAAAAMFBMVEWiZjacZjacYDacYDCWYDCWWjCWWiqQWiqKWjCKVCqEVCqETiR+TiR+SB54SCRwQBwiNqQOAAACK0lEQVR42gEgAt/9AUEyJUSW7zzurA1W78gEZuACwLEFz8MVGw0Kvw4wtADQDwIzEx/g/qoCE+ZvFAP+3zASAhELDy/gAB4e28IeD0QeAd4CmxMf3t5AEeLwLR69oOI/HwAE5IvpZPWd6QXgnflh8In8AwABLQ9i3REB9WxLv+GBYuECJNEw42HQ/e3gSw4QzS0EEQLczM4g094zIP/gDjEExN/uAmVA8d3RMBDjz/DUDwsNHgIA4QT5mfEG+cvjZOyb5hL5zQA25bj5A/K4+lHx2fgy4q37A1h5TdGt6v74wJkU747/CeACsksRDv2cP9770gLlFNNB8gIgAdAPYgDQQgNr7QsJ0dIfAuvg/dGhEi7B/ZMR8wQrDv8CwB9g/+IwMfygHFIBwuUwAAAU44v7BPSt7Dbxif0w88v4AhAuIM0xXiuv/VMQjwdzzdECMf8QwA0i4y3jMi8f3r8S0gK78c5C/9wA9Fr98DJLACEBAvBUQN4k4u4fweAE27ExwPAA9QT5vfIF+rn1UOiI52P62QAi8Ir7QPa7/FD2mvhD4Mz5AVHWlO3P2WvSxgA2AL3gpe4C1AvQ8ZoF3SzP/RAU3xzQ8AQP8SAeVgkg4A70DzPW4f0xAi1AEPILsOAg4fwk4O2/It8A4DTry/J1+83wM/yI9DHqigBl9LnqYPab6Ub1iPxB8bn4AsxAAeC1Og/y6lBEnQIT8MUC8EDh0Rzj7+40Es9Bvyzy/BRpE+KYFySHAAAAAElFTkSuQmCC", "paila": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgBAMAAACBVGfHAAAAMFBMVEXxizrqhDXkhDXkfjLefjPZeDDSdC7Lci7HbCvAZym6Zim6YCW0YCa0WiOuXCOnVyDqujTjAAAB+0lEQVR42gXBPW/TQBgA4PdemySu2vjODkgIGufDSPQDSNIMUIRCKQMLqC0SIwiJf8LPQGJgZmDpgkQgrLRx0g4IocTXBEgj6tzZrUSq1j6eh2ydzL+tZ1uvDy498V6N35na41Hz8mF6EUq3jTvbWvIb2SzBeJ8K0uvY+eF9HyWoLFAABiUxcHgRexfWPPdGt7qTq3x4cPalpCslVVYI4vDz2I4pavdGoMTZ6uFMRi6m+XeFdG6vxqOknzMHtd1fL5s6ixyAEACcFPBnH6lmnWa2i+Z4Venq9G5fMMySBOr5iE2irR12NbR0BUAFcQgmHUsQEeO1/B77tF/pseX207/DhkAIAldFkpc5qsGwwLUVOfXTBjMyxHB+zHcV+qQxqZ97NWE/b64nB5aeHAsI14YQ84hxYjroxkC+dZl084OVWMt6SKi3CVG+TVSb+rwYoALwGCFmqAoSasrGgNzy3aW90pFeff9wtkVQoUlI2C8qjEOaYEOr/wv91JWFKSsM7GkYjNA2W+uiO+drE77xs7zBEaRKpAQCjgUlH4T2aDztL2WYwfTqH3fiATaxIsOjVi3AuEtjv4TlZELBBiDSmQ8KxMfyUWulpxq75ZmvOZ560UdgSMwTyqni1ZgDauU0pIzIWJha160w7kg8P775WV/uFHsXK280JTf/A9uu7Uz+MMDtAAAAAElFTkSuQmCC", "personaje": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgBAMAAACBVGfHAAAAMFBMVEX28env6uP3yRLqcirkbCrkbCQikNTeZiCKVDKEVDCETi1+Tip+SConNlQiME4bIzmG8yk8AAABkElEQVR42oXOsW7TUBSH8f85tkSQSnxsMQCqwnW8MBTiFLExoPIQZWRCHWHgIeAN2HgOJERgYqC0SWe7jmFs6nPTIRnqe5hh4dt+20fvzUW7DdeuwcGyQhFjchWu2D8nIPhp6zloNTwR//OY46/lWlbxdD2+fecINw/fYTDJm4LnfWiaqtp8rCperFYJTyPfA7jxGggjjznXtzxcUZgWhTXhvtAHeCSp77IdWjrfBRZ/4PbzN9jbcnmeuGfc8KyZLWObvbSTx84t6JMO56kl26NvX2iUYRg9XA/2tw/a3RffJ5udzfacDnsX1eNrXjxC44xAY/wd/2PET0Yc2jA+7aet+0wyYdgPHjEuUwPyrPwV7WX30IuF/Gxwkd+t11wjNBxa14bA7bUvOevR4/dFi1INjGN6e2oCF9XsEHiGp/Tqfx+0IgMIagRIl4K9AWSGVCAK69iIFJ7EOlNJVZjUyMQUQkAnxAIFAAGJQTzo0pQAgUIAIyUykEEUQooEFCdejIxEoSbUEZOZB4HIC9RE/gDapcFJ3GhVAwAAAABJRU5ErkJggg=="};
+
+function vSub(a, b) {
+  return [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
+}
+function vCross(a, b) {
+  return [
+    a[1] * b[2] - a[2] * b[1],
+    a[2] * b[0] - a[0] * b[2],
+    a[0] * b[1] - a[1] * b[0]
+  ];
+}
+function vNorm(a) {
+  const l = Math.hypot(a[0], a[1], a[2]) || 1;
+  return [a[0] / l, a[1] / l, a[2] / l];
+}
+
+function makeTriUV(v0, v1, v2, rgb, emit, tex, uv0, uv1, uv2) {
+  const e1 = vSub(v1, v0);
+  const e2 = vSub(v2, v0);
+  const n = vNorm(vCross(e1, e2));
+  return {
+    v0: v0,
+    v1: v1,
+    v2: v2,
+    n: n,
+    rgb: rgb,
+    emit: emit || 0,
+    tex: tex || "adoquin",
+    uv0: uv0 || [0, 0],
+    uv1: uv1 || [0, 1],
+    uv2: uv2 || [1, 1]
+  };
+}
+
+function makeTri(v0, v1, v2, rgb, emit, tex) {
+  return makeTriUV(v0, v1, v2, rgb, emit, tex || "adoquin", [0, 0], [0, 1], [1, 1]);
+}
+
+function addQuadUV(tris, a, b, c, d, rgb, emit, tex, u0, v0, u1, v1) {
+  const uu0 = u0 !== undefined ? u0 : 0.0;
+  const vv0 = v0 !== undefined ? v0 : 0.0;
+  const uu1 = u1 !== undefined ? u1 : 1.0;
+  const vv1 = v1 !== undefined ? v1 : 1.0;
+  const tx = tex || "adoquin";
+  tris.push(makeTriUV(a, b, c, rgb, emit, tx, [uu0, vv1], [uu0, vv0], [uu1, vv0]));
+  tris.push(makeTriUV(a, c, d, rgb, emit, tx, [uu0, vv1], [uu1, vv0], [uu1, vv1]));
+}
+
+function addQuad(tris, a, b, c, d, rgb, emit, tex) {
+  addQuadUV(tris, a, b, c, d, rgb, emit, tex || "adoquin", 0, 0, 1, 1);
+}
+
+function addSubdividedQuadUV(tris, a, b, c, d, segsU, segsV, colA, colB, emit, tex) {
+  for (let u = 0; u < segsU; u++) {
+    const u0 = u / segsU;
+    const u1 = (u + 1) / segsU;
+    for (let v = 0; v < segsV; v++) {
+      const v0 = v / segsV;
+      const v1 = (v + 1) / segsV;
+      const bilerp = (uu, vv) => [
+        (1 - uu) * (1 - vv) * a[0] + uu * (1 - vv) * d[0] + uu * vv * c[0] + (1 - uu) * vv * b[0],
+        (1 - uu) * (1 - vv) * a[1] + uu * (1 - vv) * d[1] + uu * vv * c[1] + (1 - uu) * vv * b[1],
+        (1 - uu) * (1 - vv) * a[2] + uu * (1 - vv) * d[2] + uu * vv * c[2] + (1 - uu) * vv * b[2]
+      ];
+      const p00 = bilerp(u0, v0);
+      const p01 = bilerp(u0, v1);
+      const p11 = bilerp(u1, v1);
+      const p10 = bilerp(u1, v0);
+      const col = ((u + v) & 1) === 0 ? colA : colB;
+      addQuadUV(tris, p00, p01, p11, p10, col, emit, tex || "catedral", u0, 1 - v1, u1, 1 - v0);
+    }
+  }
+}
+
+function addBox(tris, cx, cy, cz, sx, sy, sz, rgb, emit, tex) {
+  const tx = tex || "madera";
+  const x0 = cx - sx * 0.5, x1 = cx + sx * 0.5;
+  const y0 = cy - sy * 0.5, y1 = cy + sy * 0.5;
+  const z0 = cz - sz * 0.5, z1 = cz + sz * 0.5;
+  const p000 = [x0, y0, z0], p100 = [x1, y0, z0], p110 = [x1, y1, z0], p010 = [x0, y1, z0];
+  const p001 = [x0, y0, z1], p101 = [x1, y0, z1], p111 = [x1, y1, z1], p011 = [x0, y1, z1];
+  const dark = [Math.max(0, rgb[0] - 14), Math.max(0, rgb[1] - 14), Math.max(0, rgb[2] - 14)];
+  const topCol = [Math.min(255, rgb[0] + 14), Math.min(255, rgb[1] + 14), Math.min(255, rgb[2] + 14)];
+  addQuadUV(tris, p000, p010, p110, p100, rgb, emit, tx, 0, 0, 1, 1);
+  addQuadUV(tris, p101, p111, p011, p001, rgb, emit, tx, 0, 0, 1, 1);
+  addQuadUV(tris, p001, p011, p010, p000, dark, emit, tx, 0, 0, 1, 1);
+  addQuadUV(tris, p100, p110, p111, p101, dark, emit, tx, 0, 0, 1, 1);
+  addQuadUV(tris, p010, p011, p111, p110, topCol, emit, tx, 0, 0, 1, 1);
+}
+
+function addRotBox(tris, cx, cy, cz, sx, sy, sz, yaw, rgb, emit, tex) {
+  const tx = tex || "madera";
+  const c = Math.cos(yaw), s = Math.sin(yaw);
+  const rot = (lx, ly, lz) => [cx + lx * c + lz * s, cy + ly, cz - lx * s + lz * c];
+  const hx = sx * 0.5, hy = sy * 0.5, hz = sz * 0.5;
+  const p000 = rot(-hx, -hy, -hz), p100 = rot(hx, -hy, -hz), p110 = rot(hx, hy, -hz), p010 = rot(-hx, hy, -hz);
+  const p001 = rot(-hx, -hy, hz), p101 = rot(hx, -hy, hz), p111 = rot(hx, hy, hz), p011 = rot(-hx, hy, hz);
+  const dark = [Math.max(0, rgb[0] - 14), Math.max(0, rgb[1] - 14), Math.max(0, rgb[2] - 14)];
+  const topCol = [Math.min(255, rgb[0] + 14), Math.min(255, rgb[1] + 14), Math.min(255, rgb[2] + 14)];
+  addQuadUV(tris, p000, p010, p110, p100, rgb, emit, tx, 0, 0, 1, 1);
+  addQuadUV(tris, p101, p111, p011, p001, rgb, emit, tx, 0, 0, 1, 1);
+  addQuadUV(tris, p001, p011, p010, p000, dark, emit, tx, 0, 0, 1, 1);
+  addQuadUV(tris, p100, p110, p111, p101, dark, emit, tx, 0, 0, 1, 1);
+  addQuadUV(tris, p010, p011, p111, p110, topCol, emit, tx, 0, 0, 1, 1);
+}
+
+function addPyramid(tris, cx, yBase, cz, sx, sy, sz, rgb, emit, tex) {
+  const tx = tex || "adoquin";
+  const x0 = cx - sx * 0.5, x1 = cx + sx * 0.5;
+  const z0 = cz - sz * 0.5, z1 = cz + sz * 0.5;
+  const top = [cx, yBase + sy, cz];
+  const p00 = [x0, yBase, z0], p10 = [x1, yBase, z0], p11 = [x1, yBase, z1], p01 = [x0, yBase, z1];
+  tris.push(makeTriUV(p00, top, p10, rgb, emit, tx, [0, 1], [0.5, 0], [1, 1]));
+  tris.push(makeTriUV(p10, top, p11, rgb, emit, tx, [0, 1], [0.5, 0], [1, 1]));
+  tris.push(makeTriUV(p11, top, p01, rgb, emit, tx, [0, 1], [0.5, 0], [1, 1]));
+  tris.push(makeTriUV(p01, top, p00, rgb, emit, tx, [0, 1], [0.5, 0], [1, 1]));
+}
+
+function addCylinder(tris, cx, y0, cz, rBot, rTop, h, segs, rgb, emit, tex) {
+  const tx = tex || "madera";
+  const y1 = y0 + h;
+  const sCount = Math.max(10, segs);
+  const dark = [Math.max(0, rgb[0] - 12), Math.max(0, rgb[1] - 12), Math.max(0, rgb[2] - 12)];
+  for (let i = 0; i < sCount; i++) {
+    const u0 = i / sCount;
+    const u1 = (i + 1) / sCount;
+    const a0 = u0 * Math.PI * 2;
+    const a1 = u1 * Math.PI * 2;
+    const b0 = [cx + Math.cos(a0) * rBot, y0, cz + Math.sin(a0) * rBot];
+    const b1 = [cx + Math.cos(a1) * rBot, y0, cz + Math.sin(a1) * rBot];
+    const t0 = [cx + Math.cos(a0) * rTop, y1, cz + Math.sin(a0) * rTop];
+    const t1 = [cx + Math.cos(a1) * rTop, y1, cz + Math.sin(a1) * rTop];
+    const c = (i & 1) === 0 ? rgb : dark;
+    addQuadUV(tris, b0, t0, t1, b1, c, emit, tx, u0, 0, u1, 1);
+    tris.push(makeTriUV([cx, y1, cz], t1, t0, rgb, emit, tx, [0.5, 0.5], [u1, 0], [u0, 0]));
+  }
+}
+
+// Superficie de revolucion (lathe) organica de alta definicion con coordenadas UV completas
+function addLatheSculpted(tris, cx, cy, cz, profileYR, segs, scaleX, scaleY, scaleZ, yaw, rgb, emit, tex, vMin, vMax) {
+  const tx = tex || "chontaduro";
+  const vvMin = vMin !== undefined ? vMin : 0.0;
+  const vvMax = vMax !== undefined ? vMax : 1.0;
+  const altCol = [Math.max(0, rgb[0] - 10), Math.max(0, rgb[1] - 10), Math.max(0, rgb[2] - 10)];
+  const numR = profileYR.length;
+  for (let r = 0; r < numR - 1; r++) {
+    const p0 = profileYR[r];
+    const p1 = profileYR[r + 1];
+    const v0 = vvMin + (1.0 - r / Math.max(1, numR - 1)) * (vvMax - vvMin);
+    const v1 = vvMin + (1.0 - (r + 1) / Math.max(1, numR - 1)) * (vvMax - vvMin);
+    for (let s = 0; s < segs; s++) {
+      const u0 = s / segs;
+      const u1 = (s + 1) / segs;
+      const a0 = yaw + u0 * Math.PI * 2;
+      const a1 = yaw + u1 * Math.PI * 2;
+      const q00 = [cx + Math.cos(a0) * p0[1] * scaleX, cy + p0[0] * scaleY, cz + Math.sin(a0) * p0[1] * scaleZ];
+      const q10 = [cx + Math.cos(a1) * p0[1] * scaleX, cy + p0[0] * scaleY, cz + Math.sin(a1) * p0[1] * scaleZ];
+      const q11 = [cx + Math.cos(a1) * p1[1] * scaleX, cy + p1[0] * scaleY, cz + Math.sin(a1) * p1[1] * scaleZ];
+      const q01 = [cx + Math.cos(a0) * p1[1] * scaleX, cy + p1[0] * scaleY, cz + Math.sin(a0) * p1[1] * scaleZ];
+      const col = ((r + s) & 1) === 0 ? rgb : altCol;
+      addQuadUV(tris, q00, q01, q11, q10, col, emit, tx, u0, v1, u1, v0);
+    }
+  }
+}
+
+function addSphereLowPoly(tris, cx, cy, cz, rx, ry, rz, yaw, rgb, emit, tex, vMin, vMax) {
+  const profile = [
+    [-1.00, 0.04],
+    [-0.82, 0.48],
+    [-0.48, 0.84],
+    [-0.12, 0.98],
+    [0.20, 0.96],
+    [0.54, 0.80],
+    [0.84, 0.46],
+    [1.00, 0.04]
+  ];
+  addLatheSculpted(tris, cx, cy, cz, profile, 12, rx, ry, rz, yaw, rgb, emit, tex || "borojo", vMin, vMax);
+}
+
+// Chontaduro 3D Esculpido (14 lados x 9 anillos suaves con hendidura superior, miel y caliz)
+function addSculptedChontaduro3D(tris, cx, cy, cz, scale, yaw, isGolden) {
+  const profile = [
+    [-0.58, 0.02],
+    [-0.46, 0.18],
+    [-0.28, 0.34],
+    [-0.06, 0.45],
+    [0.16, 0.48],
+    [0.34, 0.42],
+    [0.46, 0.28],
+    [0.54, 0.12],
+    [0.58, 0.02]
+  ];
+  const rgb = isGolden ? [255, 214, 48] : [242, 88, 34];
+  addLatheSculpted(tris, cx, cy, cz, profile, 14, scale, scale, scale, yaw, rgb, isGolden ? 0.48 : 0.25, "chontaduro", 0.0, 1.0);
+}
+
+// Botella de Viche / Arrechon Torneada 3D (14 lados x 10 anillos suaves con hombros curvos, cuello largo, corcho y etiqueta UV)
+function addSculptedVicheBottle3D(tris, cx, y0, cz, scale, yaw, isAmber) {
+  const profile = [
+    [0.00, 0.27],
+    [0.12, 0.29],
+    [0.48, 0.29],
+    [0.72, 0.27],
+    [0.88, 0.18],
+    [1.02, 0.10],
+    [1.26, 0.10],
+    [1.34, 0.13],
+    [1.46, 0.09],
+    [1.50, 0.02]
+  ];
+  const rgb = isAmber ? [234, 158, 52] : [188, 134, 58];
+  addLatheSculpted(tris, cx, y0, cz, profile, 14, scale, scale, scale, yaw, rgb, 0.26, "viche", 0.0, 1.0);
+}
+
+// Paila de Cobre Martillado Torneada 3D con Asas Laterales Curvas
+function addSculptedCopperPaila3D(tris, cx, y0, cz, scale) {
+  const profile = [
+    [0.00, 0.35],
+    [0.12, 0.56],
+    [0.28, 0.74],
+    [0.46, 0.88],
+    [0.60, 1.02],
+    [0.64, 1.08]
+  ];
+  addLatheSculpted(tris, cx, y0, cz, profile, 14, scale, scale, scale, 0, [228, 128, 48], 0.26, "paila", 0.0, 1.0);
+  // Dos asas curvas de bronce a los lados
+  addBox(tris, cx - 1.05 * scale, y0 + 0.54 * scale, cz, 0.22 * scale, 0.14 * scale, 0.36 * scale, [245, 178, 68], 0.25, "paila");
+  addBox(tris, cx + 1.05 * scale, y0 + 0.54 * scale, cz, 0.22 * scale, 0.14 * scale, 0.36 * scale, [245, 178, 68], 0.25, "paila");
+}
+
+// Palmera de Chontaduro Curva con Hojas Doradas/Bronce del Atardecer (CERO verde chillon)
+function addCrashPalmTree(tris, px, py, pz, scale, leanX, leanZ) {
+  const segs = 7;
+  let curX = px, curY = py, curZ = pz;
+  for (let s = 0; s < segs; s++) {
+    const t = s / segs;
+    const h = 1.05 * scale;
+    const nx = curX + leanX * (t + 0.15) * 0.32;
+    const nz = curZ + leanZ * (t + 0.15) * 0.32;
+    const r0 = (0.44 - t * 0.22) * scale;
+    const r1 = (0.40 - (t + 1 / segs) * 0.22) * scale;
+    const barkCol = (s & 1) === 0 ? [154, 96, 52] : [128, 78, 42];
+    addCylinder(tris, (curX + nx) * 0.5, curY, (curZ + nz) * 0.5, r0, r1, h, 10, barkCol, 0.05, "palma_tronco");
+    curX = nx;
+    curY += h;
+    curZ = nz;
+  }
+  // Racimos de Chontaduro Esculpidos bajo la copa
+  addSculptedChontaduro3D(tris, curX + 0.38 * scale, curY - 0.25 * scale, curZ, 0.72 * scale, 0, false);
+  addSculptedChontaduro3D(tris, curX - 0.35 * scale, curY - 0.25 * scale, curZ + 0.28 * scale, 0.72 * scale, 1.2, true);
+
+  // 8 Pencas Curvas con paleta Calida Dorada/Ocre/Bronce de Atardecer (CERO verde dominante!)
+  const numFronds = 8;
+  for (let f = 0; f < numFronds; f++) {
+    const ang = (f / numFronds) * Math.PI * 2;
+    const ca = Math.cos(ang), sa = Math.sin(ang);
+    const pxn = -sa * 0.52 * scale, pzn = ca * 0.52 * scale;
+    const p0 = [curX, curY + 0.2 * scale, curZ];
+    const p1 = [curX + ca * 1.5 * scale, curY + 0.62 * scale, curZ + sa * 1.5 * scale];
+    const p2 = [curX + ca * 2.9 * scale, curY + 0.12 * scale, curZ + sa * 2.9 * scale];
+    const p3 = [curX + ca * 4.0 * scale, curY - 0.75 * scale, curZ + sa * 4.0 * scale];
+    const leafWarm = (f & 1) === 0 ? [184, 146, 56] : [162, 124, 48];
+    const leafShade = [138, 102, 42];
+    tris.push(makeTriUV(p0, [p1[0] + pxn, p1[1], p1[2] + pzn], p2, leafWarm, 0.08, "popocho", [0.5, 0], [0, 0.5], [0.5, 0.8]));
+    tris.push(makeTriUV(p0, p2, [p1[0] - pxn, p1[1], p1[2] - pzn], leafShade, 0.05, "popocho", [0.5, 0], [0.5, 0.8], [1, 0.5]));
+    tris.push(makeTriUV([p1[0] + pxn, p1[1], p1[2] + pzn], [p2[0] + pxn * 0.7, p2[1], p2[2] + pzn * 0.7], p3, leafWarm, 0.08, "popocho", [0, 0.5], [0, 0.85], [0.5, 1]));
+    tris.push(makeTriUV([p1[0] - pxn, p1[1], p1[2] - pzn], p3, [p2[0] - pxn * 0.7, p2[1], p2[2] - pzn * 0.7], leafShade, 0.05, "popocho", [1, 0.5], [0.5, 1], [1, 0.85]));
+  }
+}
+
+function addColonialBuilding(tris, cx, y0, cz, w, h, d, wallRgb, trimRgb, roofRgb, useWoodTex) {
+  const texKey = useWoodTex ? "casa_madera" : "casa_colonial";
+  addSubdividedQuadUV(
+    tris,
+    [cx - w * 0.5, y0, cz - d * 0.5],
+    [cx - w * 0.5, y0 + h, cz - d * 0.5],
+    [cx + w * 0.5, y0 + h, cz - d * 0.5],
+    [cx + w * 0.5, y0, cz - d * 0.5],
+    3, 2,
+    wallRgb,
+    [Math.max(0, wallRgb[0] - 12), Math.max(0, wallRgb[1] - 12), Math.max(0, wallRgb[2] - 12)],
+    0.08,
+    texKey
+  );
+  addBox(tris, cx, y0 + h * 0.5, cz, w, h, d, wallRgb, 0.06, texKey);
+  addBox(tris, cx, y0 + h * 0.52, cz - d * 0.5 - 0.58, w * 0.88, 0.25, 1.15, trimRgb, 0.05, "madera");
+  addBox(tris, cx, y0 + h * 0.64, cz - d * 0.5 - 1.05, w * 0.88, 0.68, 0.16, trimRgb, 0.05, "madera");
+  for (let bx = -w * 0.38; bx <= w * 0.39; bx += w * 0.38) {
+    addCylinder(tris, cx + bx, y0, cz - d * 0.5 - 0.95, 0.16, 0.16, h * 0.52, 8, trimRgb, 0.04, "madera");
+  }
+  addPyramid(tris, cx, y0 + h, cz, w + 0.95, 2.3, d + 0.95, roofRgb, 0.06, "adoquin");
+}
+
+function addChivaBus3D(tris, cx, y0, cz, yaw) {
+  addRotBox(tris, cx, y0 + 1.18, cz, 2.8, 1.55, 6.4, yaw, [248, 196, 24], 0.12, "casa_madera");
+  addRotBox(tris, cx, y0 + 0.75, cz, 2.86, 0.55, 6.45, yaw, [38, 98, 216], 0.10, "casa_colonial");
+  addRotBox(tris, cx, y0 + 0.42, cz, 2.9, 0.35, 6.5, yaw, [224, 44, 38], 0.10, "adoquin");
+  addRotBox(tris, cx, y0 + 2.15, cz - 0.3, 2.6, 0.85, 5.2, yaw, [248, 242, 228], 0.12, "catedral");
+  addRotBox(tris, cx, y0 + 2.68, cz - 0.3, 2.75, 0.22, 5.5, yaw, [224, 44, 38], 0.14, "adoquin");
+  const c = Math.cos(yaw), s = Math.sin(yaw);
+  const wheelOffsets = [[-1.45, -2.1], [1.45, -2.1], [-1.45, 2.1], [1.45, 2.1]];
+  wheelOffsets.forEach((wo) => {
+    const wx = cx + wo[0] * c + wo[1] * s;
+    const wz = cz - wo[0] * s + wo[1] * c;
+    addCylinder(tris, wx, y0, wz, 0.54, 0.54, 0.68, 10, [32, 34, 38], 0.02, "adoquin");
+  });
+}
+
+function addTaxiQuibdo3D(tris, cx, y0, cz, yaw) {
+  addRotBox(tris, cx, y0 + 0.62, cz, 2.1, 0.72, 4.3, yaw, [250, 204, 21], 0.12, "casa_madera");
+  addRotBox(tris, cx, y0 + 1.22, cz - 0.2, 1.75, 0.62, 2.3, yaw, [250, 212, 54], 0.12, "casa_madera");
+  addRotBox(tris, cx, y0 + 1.24, cz - 0.2, 1.82, 0.45, 2.1, yaw, [38, 58, 82], 0.18, "rio");
+}
+
+// Personaje Chocoano 3D con Anatomia Esculpida Suave (Torso, Piernas, Brazos, Cabeza y Rostro con UVs del Atlas)
+function addArticulatedHuman3D(tris, x, y, z, yaw, walkPhase, scale, skinRgb, shirtRgb, pantsRgb, hatRgb, isSlide, weaponSwing) {
+  const c = Math.cos(yaw), s = Math.sin(yaw);
+  const crouch = isSlide ? 0.45 * scale : 0;
+  const toWorld = (lx, ly, lz) => [
+    x + (lx * c + lz * s) * scale,
+    y + ly * scale - crouch,
+    z + (-lx * s + lz * c) * scale
+  ];
+  const legSw = Math.sin(walkPhase) * 0.34;
+  const armSw = Math.cos(walkPhase) * 0.36;
+
+  // Tenis esculpidos
+  const lShoe = toWorld(-0.22, 0.14 + Math.max(0, legSw * 0.25), legSw * 0.85);
+  const rShoe = toWorld(0.22, 0.14 + Math.max(0, -legSw * 0.25), -legSw * 0.85);
+  addSphereLowPoly(tris, lShoe[0], lShoe[1], lShoe[2], 0.15 * scale, 0.13 * scale, 0.26 * scale, yaw, [246, 242, 234], 0.12, "personaje", 0.88, 1.0);
+  addSphereLowPoly(tris, rShoe[0], rShoe[1], rShoe[2], 0.15 * scale, 0.13 * scale, 0.26 * scale, yaw, [246, 242, 234], 0.12, "personaje", 0.88, 1.0);
+
+  // Piernas torneadas con perfil anatomico
+  const legProfile = [
+    [0.00, 0.11],
+    [0.20, 0.13],
+    [0.42, 0.12],
+    [0.65, 0.15],
+    [0.82, 0.16]
+  ];
+  const lLeg = toWorld(-0.22, 0.18, legSw * 0.45);
+  const rLeg = toWorld(0.22, 0.18, -legSw * 0.45);
+  addLatheSculpted(tris, lLeg[0], lLeg[1], lLeg[2], legProfile, 10, scale, scale, scale, yaw, pantsRgb, 0.05, "personaje", 0.72, 0.90);
+  addLatheSculpted(tris, rLeg[0], rLeg[1], rLeg[2], legProfile, 10, scale, scale, scale, yaw, pantsRgb, 0.05, "personaje", 0.72, 0.90);
+
+  // Torso anatomico esculpido (cintura, pecho, hombros redondeados)
+  const torsoProfile = [
+    [0.88, 0.25],
+    [1.02, 0.28],
+    [1.24, 0.36],
+    [1.48, 0.42],
+    [1.64, 0.34],
+    [1.70, 0.16]
+  ];
+  const hip = toWorld(0, 0.0, 0);
+  addLatheSculpted(tris, hip[0], hip[1], hip[2], torsoProfile, 12, scale, scale, scale, yaw, shirtRgb, 0.14, "personaje", 0.38, 0.72);
+
+  // Brazos torneados con hombros y manos esfericas
+  const armProfile = [
+    [-0.42, 0.09],
+    [-0.22, 0.10],
+    [0.00, 0.12],
+    [0.16, 0.14]
+  ];
+  const lArm = toWorld(-0.52, 1.42, -armSw * 0.45);
+  const rArm = toWorld(0.52, 1.42, armSw * 0.45 + weaponSwing * 0.45);
+  addLatheSculpted(tris, lArm[0], lArm[1], lArm[2], armProfile, 10, scale, scale, scale, yaw, skinRgb, 0.08, "personaje", 0.05, 0.35);
+  addLatheSculpted(tris, rArm[0], rArm[1], rArm[2], armProfile, 10, scale, scale, scale, yaw, skinRgb, 0.08, "personaje", 0.05, 0.35);
+
+  if (weaponSwing >= 0) {
+    const wp = toWorld(0.72, 1.38 + Math.sin(weaponSwing * Math.PI) * 0.55, 0.62);
+    addCylinder(tris, wp[0], wp[1] - 0.45 * scale, wp[2], 0.06 * scale, 0.07 * scale, 0.72 * scale, 10, [138, 84, 42], 0.04, "madera");
+    addSculptedChontaduro3D(tris, wp[0], wp[1] + 0.35 * scale, wp[2], 0.85 * scale, yaw, true);
+  }
+
+  // Cabeza esculpida con rostro mapeado en la parte superior del atlas + sombrero chocoano torneado
+  const head = toWorld(0, 1.96, 0);
+  addSphereLowPoly(tris, head[0], head[1], head[2], 0.33 * scale, 0.37 * scale, 0.33 * scale, yaw, skinRgb, 0.12, "personaje", 0.02, 0.36);
+  const hatProfile = [
+    [0.20, 0.68],
+    [0.24, 0.64],
+    [0.28, 0.38],
+    [0.54, 0.34],
+    [0.60, 0.04]
+  ];
+  addLatheSculpted(tris, head[0], head[1], head[2], hatProfile, 12, scale, scale, scale, yaw, hatRgb, 0.20, "popocho", 0.1, 0.9);
+}
+
+// Barril / Tinaja Chocoana Torneada con Chontaduro / Viche Esculpido
+function addCrashCrate3D(tris, x, y, z, rot, isViche) {
+  const barrelProfile = [
+    [0.00, 0.44],
+    [0.28, 0.58],
+    [0.62, 0.62],
+    [0.96, 0.56],
+    [1.16, 0.44]
+  ];
+  const baseCol = isViche ? [216, 152, 68] : [208, 128, 52];
+  addLatheSculpted(tris, x, y + 0.02, z, barrelProfile, 12, 1.0, 1.0, 1.0, rot, baseCol, 0.14, isViche ? "viche" : "madera", 0.0, 1.0);
+  addSculptedChontaduro3D(tris, x, y + 1.44, z, 0.58, rot, isViche);
+}
+
+function drawTexturedTriangleAffine(ctx, img, x0, y0, x1, y1, x2, y2, u0, v0, u1, v1, u2, v2, shadeRgba) {
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(x0, y0);
+  ctx.lineTo(x1, y1);
+  ctx.lineTo(x2, y2);
+  ctx.closePath();
+  ctx.clip();
+
+  const tw = img.naturalWidth || 64;
+  const th = img.naturalHeight || 64;
+  const su0 = u0 * tw, sv0 = v0 * th;
+  const su1 = u1 * tw, sv1 = v1 * th;
+  const su2 = u2 * tw, sv2 = v2 * th;
+
+  const det = (su1 - su0) * (sv2 - sv0) - (su2 - su0) * (sv1 - sv0);
+  if (Math.abs(det) > 1e-4) {
+    const idet = 1.0 / det;
+    const a = ((x1 - x0) * (sv2 - sv0) - (x2 - x0) * (sv1 - sv0)) * idet;
+    const b = ((y1 - y0) * (sv2 - sv0) - (y2 - y0) * (sv1 - sv0)) * idet;
+    const c = ((su1 - su0) * (x2 - x0) - (su2 - su0) * (x1 - x0)) * idet;
+    const d = ((su1 - su0) * (y2 - y0) - (su2 - su0) * (y1 - y0)) * idet;
+    const e = x0 - a * su0 - c * sv0;
+    const f = y0 - b * su0 - d * sv0;
+    ctx.transform(a, b, c, d, e, f);
+    ctx.drawImage(img, 0, 0);
+  }
+  ctx.restore();
+
+  if (shadeRgba) {
+    ctx.beginPath();
+    ctx.moveTo(x0, y0);
+    ctx.lineTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.closePath();
+    ctx.fillStyle = shadeRgba;
+    ctx.fill();
+  }
+}
+
+
+const MEME_CUSTOMERS = [
+  {
+    id: 1,
+    name: "Janfry - Camino Como Hombre",
+    quote: "Ey tio, deme un Chontaduro con miel pa caminar como un hombre!",
+    want: "Chontaduro con Miel ($18)",
+    tex: "chontaduro",
+    shirt: [34, 98, 224],
+    hat: [250, 204, 21],
+    x: -0.2, z: 4.5, tx: -0.2, tz: 3.6
+  },
+  {
+    id: 2,
+    name: "Jonyer - Obvio Bobis",
+    quote: "Obvio bobis mi llave! Sirvame un Arrechon bien cargado!",
+    want: "Botella de Arrechon ($28)",
+    tex: "viche",
+    shirt: [234, 88, 12],
+    hat: [34, 197, 94],
+    x: -1.8, z: 5.4, tx: -1.4, tz: 3.7
+  },
+  {
+    id: 3,
+    name: "Dona Cruz del Malecon",
+    quote: "Con este Borojo y Viche salen mellizos primo!",
+    want: "Chontaduro Legendario ($60)",
+    tex: "borojo",
+    shirt: [217, 70, 239],
+    hat: [250, 204, 21],
+    x: 1.8, z: 5.6, tx: 1.4, tz: 3.7
+  },
+  {
+    id: 4,
+    name: "Tostao Flow Quibdoseno",
+    quote: "Que suene la chirimia! Dame un Viche Curado pa la tarima!",
+    want: "Viche Curado San Pacho ($28)",
+    tex: "popocho",
+    shirt: [234, 179, 8],
+    hat: [56, 189, 248],
+    x: 0.4, z: 7.5, tx: 0.4, tz: 4.9
+  }
+];
+
+function buildVicheroOpenWorld() {
+  const staticTris = [];
+  const billboards = [];
+
+  // 1. Open World Floor of Malecon, Alameda Reyes & Plaza de la Catedral (-36..36 X, -16..34 Z)
+  const step = 3.0;
+  for (let gx = -36; gx < 36; gx += step) {
+    for (let gz = -12; gz < 32; gz += step) {
+      const x0 = gx, x1 = gx + step;
+      const z0 = gz, z1 = gz + step;
+      const checker = ((Math.floor(gx / step) + Math.floor(gz / step)) & 1) === 0;
+      // Warm Golden Sunset Terracotta & Stone Cobblestones (NOT grey or dark green!)
+      let col = checker ? [184, 128, 82] : [162, 108, 66];
+      // Wooden Vichero Stall Floor (-4.5..4.5 X, -2.5..3.8 Z)
+      if (Math.abs(gx) < 4.5 && gz >= -2.8 && gz <= 3.6) {
+        col = checker ? [146, 92, 48] : [126, 78, 38];
+      }
+      // Street Carrera Primera (z between 6 and 11)
+      else if (gz >= 6.0 && gz < 11.5) {
+        col = checker ? [92, 84, 96] : [80, 72, 84];
+        if (Math.abs(gz - 8.8) < 0.8) col = [242, 192, 38];
+      }
+      // Cathedral Plaza (gz >= 11.5)
+      else if (gz >= 11.5) {
+        col = checker ? [218, 186, 142] : [198, 166, 124];
+      }
+      const y00 = Math.sin(x0 * 0.3) * 0.03;
+      const y10 = Math.sin(x1 * 0.3) * 0.03;
+      const y11 = Math.cos(z1 * 0.3) * 0.03;
+      const y01 = Math.cos(z0 * 0.3) * 0.03;
+      let tex = null;
+      if (Math.abs(gx) < 4.5 && gz >= -2.8 && gz <= 3.6) tex = "madera";
+      else if (Math.abs(gx) < 12 && gz >= 0 && gz <= 18 && !(gz >= 6.0 && gz < 11.5)) tex = "adoquin";
+      addQuadUV(staticTris, [x0, y00, z0], [x0, y01, z1], [x1, y11, z1], [x1, y10, z0], col, 0.04, tex, 0, 0, 1, 1);
+    }
+  }
+
+  // Escalinata Colonial de Piedra Ocre y Terracota hacia la Catedral (CERO verde chillon!)
+  addBox(staticTris, 0, 0.20, 12.2, 16.5, 0.38, 1.4, [196, 118, 68], 0.1, "adoquin");
+  addBox(staticTris, 0, 0.52, 13.6, 16.5, 0.38, 1.4, [242, 188, 54], 0.1, "adoquin");
+  addBox(staticTris, 0, 0.84, 15.0, 16.5, 0.38, 1.4, [218, 168, 118], 0.1, "adoquin");
+
+  // Catedral de San Francisco de Asis de Quibdo Esculpida con Textura UV Pintada (z = 19.2..22.8)
+  addSubdividedQuadUV(
+    staticTris,
+    [-9.5, 0, 19.2],
+    [-9.5, 10.2, 19.2],
+    [9.5, 10.2, 19.2],
+    [9.5, 0, 19.2],
+    4, 3,
+    [248, 236, 208],
+    [236, 218, 182],
+    0.14,
+    "catedral"
+  );
+  addBox(staticTris, 0, 5.2, 22.5, 19.0, 10.2, 6.4, [244, 228, 196], 0.1, "catedral");
+  for (let cx = -8.0; cx <= 8.0; cx += 2.65) {
+    addCylinder(staticTris, cx, 0, 18.9, 0.34, 0.30, 10.2, 8, [255, 252, 245], 0.15, null);
+  }
+  [-6.4, 6.4].forEach((tx) => {
+    addSubdividedQuadUV(
+      staticTris,
+      [tx - 2.0, 10.2, 19.4],
+      [tx - 2.0, 16.2, 19.4],
+      [tx + 2.0, 16.2, 19.4],
+      [tx + 2.0, 10.2, 19.4],
+      2, 2,
+      [250, 238, 212],
+      [242, 226, 196],
+      0.14,
+      "catedral"
+    );
+    addBox(staticTris, tx, 13.2, 21.8, 4.0, 6.2, 4.0, [250, 238, 212], 0.12, "catedral");
+    addSphereLowPoly(staticTris, tx, 14.0, 19.2, 0.95, 0.95, 0.28, 0, [255, 234, 118], 0.48, null);
+    addPyramid(staticTris, tx, 16.2, 21.8, 4.4, 4.8, 4.4, [188, 76, 48], 0.14, "adoquin");
+  });
+  addCylinder(staticTris, 0, 10.2, 22.8, 3.4, 2.8, 3.0, 10, [218, 198, 168], 0.14, "catedral");
+  addSphereLowPoly(staticTris, 0, 13.8, 22.8, 3.1, 2.8, 3.1, 0, [196, 84, 52], 0.16, "adoquin");
+
+  // Casas Coloniales y de Madera de Quibdo con Texturas UV Pintadas
+  addColonialBuilding(staticTris, -16.5, 0, 15.5, 8.0, 7.5, 6.5, [248, 192, 72], [124, 68, 32], [178, 68, 44], true);
+  addColonialBuilding(staticTris, 16.5, 0, 15.5, 8.0, 7.5, 6.5, [72, 184, 228], [245, 238, 220], [164, 62, 42], false);
+  addColonialBuilding(staticTris, -18.5, 0, 2.5, 7.5, 6.8, 6.2, [238, 112, 84], [248, 214, 96], [148, 78, 52], true);
+  addColonialBuilding(staticTris, 18.5, 0, 2.5, 7.5, 6.8, 6.2, [236, 168, 74], [120, 72, 34], [158, 74, 46], false);
+
+  // Driver 2 Vehicles passing on Carrera Primera: Chiva Rumbera & Yellow Taxi
+  addChivaBus3D(staticTris, -9.2, 0, 8.2, 1.48);
+  addTaxiQuibdo3D(staticTris, 8.8, 0, 8.4, -1.52);
+
+  // Crash Bandicoot Detailed Curved Palm Trees around Stall & Plaza
+  [
+    [-10.5, 12.8, 1.10, -0.4, 0.2],
+    [10.5, 12.8, 1.10, 0.4, 0.2],
+    [-8.5, -5.5, 1.05, -0.5, -0.2],
+    [8.5, -5.5, 1.05, 0.5, -0.2],
+    [-14.5, -6.5, 1.15, -0.4, 0.3],
+    [14.5, -6.5, 1.15, 0.4, 0.3]
+  ].forEach((p) => {
+    addCrashPalmTree(staticTris, p[0], 0, p[1], p[2], p[3], p[4]);
+  });
+
+  // 3. Detailed Walkable 3D Vichero Stall ("EL REY DEL VICHE Y EL CHONTADURO")
+  for (const px of [-3.8, 3.8]) {
+    for (const pz of [-2.4, 3.5]) {
+      addCylinder(staticTris, px, 0, pz, 0.20, 0.20, 3.8, 6, [120, 72, 34], 0.05);
+    }
+  }
+  for (let rx = -4.2; rx < 4.2; rx += 2.1) {
+    const x0 = rx, x1 = rx + 2.1;
+    const col = (Math.floor((rx + 4.2) / 2.1) & 1) === 0 ? [184, 78, 48] : [238, 178, 54];
+    addQuad(staticTris, [x0, 4.05, -2.7], [x0, 3.65, 3.8], [x1, 3.65, 3.8], [x1, 4.05, -2.7], col, 0.08);
+  }
+  // Main Front Counter + Cash Register with UV Wood Texture
+  addBox(staticTris, 0, 0.54, 2.65, 5.2, 1.08, 0.92, [156, 96, 48], 0.06, "madera");
+  addBox(staticTris, 0, 1.10, 2.65, 5.35, 0.10, 1.02, [218, 152, 68], 0.12, "madera");
+  addBox(staticTris, -1.65, 1.32, 2.65, 0.72, 0.45, 0.58, [245, 196, 24], 0.18, "paila");
+
+  // Left Station 1: Fogon de Lena & Sculpted Paila de Cobre (-2.6, 0.5)
+  addBox(staticTris, -2.6, 0.44, 0.5, 1.55, 0.88, 1.55, [118, 72, 48], 0.04, "adoquin");
+  addSculptedCopperPaila3D(staticTris, -2.6, 0.88, 0.5, 0.92);
+
+  // Left Station 2: Alambique de Cobre Destilador Esculpido (-2.6, -1.35)
+  addBox(staticTris, -2.6, 0.46, -1.35, 1.45, 0.92, 1.35, [122, 78, 42], 0.04, "madera");
+  addCylinder(staticTris, -2.6, 0.92, -1.35, 0.50, 0.40, 0.80, 10, [216, 118, 46], 0.20, "paila");
+  addSphereLowPoly(staticTris, -2.6, 1.85, -1.35, 0.52, 0.45, 0.52, 0, [238, 146, 56], 0.26, "paila");
+  addCylinder(staticTris, -1.95, 1.72, -1.35, 0.08, 0.08, 0.55, 6, [248, 178, 78], 0.25, "paila");
+
+  // Right Station: 3-Tiered Wooden Viche & Chontaduro Display Shelf (2.6, 0.4)
+  addBox(staticTris, 2.55, 0.45, 0.4, 1.15, 0.9, 3.0, [138, 84, 42], 0.05, "madera");
+  addBox(staticTris, 2.72, 1.18, 0.4, 0.80, 0.58, 3.0, [154, 96, 48], 0.06, "madera");
+  addBox(staticTris, 2.88, 1.82, 0.4, 0.50, 0.58, 3.0, [168, 108, 56], 0.08, "madera");
+
+  // South Station: Wooden Dock & Champa Boat on the Rio Atrato (z = -9.8..-13.8)
+  addBox(staticTris, 0, -0.35, -9.8, 4.8, 0.32, 6.0, [142, 88, 46], 0.05, "madera");
+  addBox(staticTris, 0, -0.55, -13.6, 6.8, 0.60, 2.1, [134, 82, 42], 0.05, "madera");
+  addPyramid(staticTris, 3.9, -0.82, -13.6, 1.5, 0.62, 2.1, [248, 196, 36], 0.12, "madera");
+  addSculptedChontaduro3D(staticTris, -0.9, 0.25, -13.6, 0.85, 0.4, false);
+  addSculptedVicheBottle3D(staticTris, 0.6, -0.15, -13.6, 0.78, 1.1, true);
+
+  return { staticTris: staticTris, billboards: billboards };
+}
+
+function createGame2Runtime(canvas, getViewportSize) {
+  const texImages = {};
+  Object.keys(PAINTED_TEXTURES_B64).forEach((k) => {
+    const img = new Image();
+    img.src = PAINTED_TEXTURES_B64[k];
+    texImages[k] = img;
+  });
+
+  const worldData = buildVicheroOpenWorld();
+  const staticWorldTris = worldData.staticTris;
+  const staticBillboards = worldData.billboards;
+
+  const keys = {};
+  const drag = { active: false, lastX: 0, lastY: 0 };
+
+  const player = {
+    x: -0.25,
+    y: 1.74,
+    z: -1.25,
+    vy: 0,
+    yaw: 0.04,
+    pitch: -0.03,
+    onGround: true,
+    bobPhase: 0.5,
+    holding: {
+      type: "bulto",
+      label: "BULTO DE CHAMPA [ESPACIO/F ABRIR]",
+      tex: "chontaduro",
+      count: 1
+    }
+  };
+
+  const sim = {
+    money: 145,
+    rep: 220,
+    rawChonta: 6,
+    rawBotanicos: 5,
+    shelfChonta: 5,
+    shelfBottles: 6,
+    shelfLegend: 2,
+    pailaState: "READY",
+    pailaTimer: 0,
+    alambiqueState: "READY",
+    alambiqueTimer: 0,
+    time: 0,
+    packRevealTimer: 0,
+    packItems: [],
+    toast: "JANFRY Y JONYER ESPERAN EN EL MOSTRADOR! PULSA [E] PARA DESPACHAR O [F] PARA ABRIR BULTO 3D.",
+    npcs: MEME_CUSTOMERS.map((c) => Object.assign({}, c, { state: "WALKING", timer: 0 }))
+  };
+
+  function playSfx(freq, slideFreq, dur, waveType) {
+    if (typeof window === "undefined") return;
+    try {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return;
+      const ac = new AC();
+      const osc = ac.createOscillator();
+      const gain = ac.createGain();
+      osc.type = waveType;
+      osc.frequency.setValueAtTime(freq, ac.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(slideFreq, ac.currentTime + dur);
+      gain.gain.setValueAtTime(0.06, ac.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + dur);
+      osc.connect(gain);
+      gain.connect(ac.destination);
+      osc.start();
+      osc.stop(ac.currentTime + dur);
+    } catch (e) {}
+  }
+
+  function trigger3DPackOpening() {
+    sim.packRevealTimer = 4.2;
+    sim.rawChonta += 4;
+    sim.rawBotanicos += 3;
+    sim.packItems = [
+      { name: "CHONTADURO ROJO", tex: "chontaduro", rgb: [232, 68, 36], isLegend: false },
+      { name: "BOROJO DEL BAJO ATRATO", tex: "borojo", rgb: [132, 204, 22], isLegend: false },
+      { name: "AMARILLO LEGENDARIO ($60)", tex: "chontaduro", rgb: [252, 214, 38], isLegend: true },
+      { name: "VICHE CURADO SAN PACHO", tex: "viche", rgb: [52, 211, 153], isLegend: false },
+      { name: "POPOCHO ASADO", tex: "popocho", rgb: [250, 184, 34], isLegend: false }
+    ];
+    player.holding = {
+      type: "legend_chonta",
+      label: "CHONTADURO AMARILLO LEGENDARIO ($60)",
+      tex: "chontaduro",
+      count: 1
+    };
+    playSfx(440, 880, 0.28, "sawtooth");
+    sim.toast = "BULTO DE CHAMPA ABIERTO! SALIO CHONTADURO AMARILLO LEGENDARIO ($60 COP)!";
+  }
+
+  function getHoveredTarget() {
+    const lookX = Math.sin(player.yaw);
+    const lookZ = Math.cos(player.yaw);
+    let best = null;
+    let bestDist = 5.2;
+
+    sim.npcs.forEach((n, idx) => {
+      const dx = n.x - player.x;
+      const dz = n.z - player.z;
+      const d = Math.hypot(dx, dz);
+      if (d < bestDist) {
+        const dot = (dx * lookX + dz * lookZ) / Math.max(0.001, d);
+        if (dot > 0.58) {
+          bestDist = d;
+          best = {
+            kind: "npc",
+            idx: idx,
+            npc: n,
+            label: "[E] DESPACHAR A " + n.name.toUpperCase() + " - " + n.want
+          };
+        }
+      }
+    });
+
+    const stations = [
+      { id: "counter", x: 0.0, z: 2.65, r: 2.6, label: "[E] COBRAR Y ATENDER CLIENTE EN MOSTRADOR" },
+      {
+        id: "fogon", x: -2.6, z: 0.5, r: 2.5,
+        label: sim.pailaState === "READY"
+          ? "[E] RECOGER BANDEJA DE CHONTADUROS COCINADOS"
+          : "[E] AVIVAR FOGON DE LENA Y PAILA DE COBRE"
+      },
+      {
+        id: "alambique", x: -2.6, z: -1.35, r: 2.5,
+        label: sim.alambiqueState === "READY"
+          ? "[E] RECOGER 3 BOTELLAS DE VICHE Y ARRECHON"
+          : "[E] DESTILAR VICHE EN ALAMBIQUE DE COBRE"
+      },
+      {
+        id: "shelf", x: 2.6, z: 0.4, r: 2.6,
+        label: player.holding
+          ? "[E] SURTIR " + player.holding.label + " EN ESTANTERIA"
+          : "[E] TOMAR BULTO DE COSECHA DE LA ESTANTERIA"
+      },
+      { id: "dock", x: 0.0, z: -12.5, r: 4.0, label: "[E] COMPRAR BULTO EN LA CHAMPA DEL ATRATO ($15)" }
+    ];
+
+    stations.forEach((st) => {
+      const dx = st.x - player.x;
+      const dz = st.z - player.z;
+      const d = Math.hypot(dx, dz);
+      if (d < st.r + 1.8) {
+        const dot = (dx * lookX + dz * lookZ) / Math.max(0.001, d);
+        if (dot > 0.55 && d < bestDist) {
+          bestDist = d;
+          best = { kind: "station", id: st.id, label: st.label };
+        }
+      }
+    });
+    return best;
+  }
+
+  function serveCustomer(idx) {
+    const n = sim.npcs[idx] || sim.npcs[0];
+    if (sim.shelfLegend > 0 || (player.holding && player.holding.type === "legend_chonta")) {
+      if (player.holding && player.holding.type === "legend_chonta") player.holding = null;
+      else sim.shelfLegend -= 1;
+      sim.money += 60;
+      sim.rep += 25;
+      n.state = "CELEBRATING";
+      n.timer = 4.0;
+      playSfx(587, 1174, 0.25, "sawtooth");
+      sim.toast = n.name.toUpperCase() + ': "' + n.quote + '" (+$60 COP)!';
+    } else if (sim.shelfBottles > 0) {
+      sim.shelfBottles -= 1;
+      sim.money += 28;
+      sim.rep += 14;
+      n.state = "CELEBRATING";
+      n.timer = 3.8;
+      playSfx(523, 880, 0.22, "sawtooth");
+      sim.toast = "VENDISTE BOTELLA DE ARRECHON A " + n.name.toUpperCase() + " (+$28 COP)!";
+    } else if (sim.shelfChonta > 0) {
+      sim.shelfChonta -= 1;
+      sim.money += 18;
+      sim.rep += 10;
+      n.state = "CELEBRATING";
+      n.timer = 3.5;
+      playSfx(440, 660, 0.18, "triangle");
+      sim.toast = "DESPACHASTE CHONTADURO CON MIEL Y SAL A " + n.name.toUpperCase() + " (+$18 COP)!";
+    } else {
+      sim.toast = "ESTANTE VACIO! RECOGE DE LA PAILA O DEL ALAMBIQUE DE COBRE.";
+    }
+  }
+
+  function handleInteract() {
+    if (player.holding && player.holding.type === "bulto") {
+      trigger3DPackOpening();
+      return;
+    }
+    const target = getHoveredTarget();
+    if (!target) {
+      serveCustomer(0);
+      return;
+    }
+    if (target.kind === "npc") {
+      serveCustomer(target.idx || 0);
+      return;
+    }
+    if (target.id === "counter") {
+      serveCustomer(0);
+    } else if (target.id === "fogon") {
+      if (sim.pailaState === "READY") {
+        sim.pailaState = "COOKING";
+        sim.pailaTimer = 4.0;
+        player.holding = { type: "chonta_tray", label: "3 VASOS DE CHONTADURO MADURO", tex: "chontaduro", count: 3 };
+        playSfx(520, 780, 0.16, "triangle");
+        sim.toast = "LLEVAS 3 VASOS DE CHONTADURO EN TUS MANOS! SURTE EL ESTANTE.";
+      } else {
+        sim.pailaState = "READY";
+        playSfx(320, 480, 0.14, "triangle");
+        sim.toast = "PAILA DE COBRE LISTA CON CHONTADURO CALIENTE!";
+      }
+    } else if (target.id === "alambique") {
+      if (sim.alambiqueState === "READY") {
+        sim.alambiqueState = "BREWING";
+        sim.alambiqueTimer = 4.5;
+        player.holding = { type: "bottle_crate", label: "3 BOTELLAS DE VICHE Y ARRECHON", tex: "viche", count: 3 };
+        playSfx(540, 820, 0.16, "triangle");
+        sim.toast = "RECOGISITE 3 BOTELLAS DE VICHE CURADO! PONLAS EN EL ESTANTE.";
+      } else {
+        sim.alambiqueState = "READY";
+        playSfx(350, 520, 0.14, "triangle");
+        sim.toast = "ALAMBIQUE LISTO CON VICHE Y ARRECHON DEL PACIFICO!";
+      }
+    } else if (target.id === "shelf") {
+      if (player.holding) {
+        if (player.holding.type === "chonta_tray") sim.shelfChonta += 3;
+        else if (player.holding.type === "bottle_crate") sim.shelfBottles += 3;
+        else if (player.holding.type === "legend_chonta") sim.shelfLegend += 1;
+        sim.toast = "SURTISTE " + player.holding.label + " EN LA ESTANTERIA!";
+        player.holding = null;
+        playSfx(600, 900, 0.15, "square");
+      } else {
+        player.holding = { type: "bulto", label: "BULTO DE CHAMPA [ESPACIO/F ABRIR]", tex: "chontaduro", count: 1 };
+        sim.toast = "TOMASTE UN BULTO DE COSECHA! PULSA [ESPACIO] O [F] PARA ABRIRLO.";
+      }
+    } else if (target.id === "dock") {
+      if (sim.money >= 15) sim.money -= 15;
+      player.holding = { type: "bulto", label: "BULTO DE CHAMPA [ESPACIO/F ABRIR]", tex: "chontaduro", count: 1 };
+      playSfx(360, 540, 0.15, "square");
+      sim.toast = "COMPRASTE UN BULTO EN LA CHAMPA DEL RIO ATRATO!";
+    }
+  }
+
+  const lightDir = vNorm([0.38, 0.85, -0.36]);
+
+  function stepFrame(dt) {
+    sim.time += dt;
+    if (sim.packRevealTimer > 0) sim.packRevealTimer = Math.max(0, sim.packRevealTimer - dt);
+    if (sim.pailaState === "COOKING") {
+      sim.pailaTimer -= dt;
+      if (sim.pailaTimer <= 0) sim.pailaState = "READY";
+    }
+    if (sim.alambiqueState === "BREWING") {
+      sim.alambiqueTimer -= dt;
+      if (sim.alambiqueTimer <= 0) sim.alambiqueState = "READY";
+    }
+
+    const spd = keys["ShiftLeft"] || keys["ShiftRight"] ? 7.8 : 5.2;
+    let mf = 0, ms = 0;
+    if (keys["KeyW"] || keys["ArrowUp"]) mf += 1;
+    if (keys["KeyS"] || keys["ArrowDown"]) mf -= 1;
+    if (keys["KeyA"]) ms -= 1;
+    if (keys["KeyD"]) ms += 1;
+    if (keys["ArrowLeft"] || keys["KeyQ"]) player.yaw -= 1.95 * dt;
+    if (keys["ArrowRight"] || keys["KeyR"]) player.yaw += 1.95 * dt;
+
+    const sinY = Math.sin(player.yaw);
+    const cosY = Math.cos(player.yaw);
+    if (mf !== 0 || ms !== 0) {
+      player.x = Math.max(-24.0, Math.min(24.0, player.x + (sinY * mf + cosY * ms) * spd * dt));
+      player.z = Math.max(-13.0, Math.min(18.0, player.z + (cosY * mf - sinY * ms) * spd * dt));
+      player.bobPhase += dt * 10.5;
+    }
+
+    player.vy -= 16.0 * dt;
+    player.y += player.vy * dt;
+    let groundY = 1.74;
+    if (player.z < -7.0) groundY = 1.74 - Math.min(0.95, (-7.0 - player.z) * 0.15);
+    else if (player.z > 11.5) groundY = 1.74 + Math.min(0.95, (player.z - 11.5) * 0.22);
+    if (player.y <= groundY) {
+      player.y = groundY;
+      player.vy = 0;
+      player.onGround = true;
+    }
+
+    sim.npcs.forEach((n, idx) => {
+      if (n.state === "CELEBRATING") {
+        n.timer -= dt;
+        n.x += Math.sin(sim.time * 8 + idx) * 2.4 * dt;
+        n.z += 1.3 * dt;
+        if (n.timer <= 0) {
+          n.x = n.tx;
+          n.z = n.tz + 3.2;
+          n.state = "WALKING";
+        }
+      } else {
+        const dx = n.tx - n.x;
+        const dz = n.tz - n.z;
+        const d = Math.hypot(dx, dz);
+        if (d > 0.15) {
+          n.x += (dx / d) * 2.2 * dt;
+          n.z += (dz / d) * 2.2 * dt;
+        }
+      }
+    });
+
+    const vp = getViewportSize();
+    const W = vp.w;
+    const H = vp.h;
+    if (canvas.width !== W || canvas.height !== H) {
+      canvas.width = W;
+      canvas.height = H;
+    }
+    const ctx = canvas.getContext("2d", { alpha: false });
+    if (!ctx) return;
+
+    const FOV = Math.min(W, H) * 0.84;
+    const SNAP_GRID = 1;
+
+    // 1. Golden Sunset Sky over the Rio Atrato & Quibdo Cathedral
+    const skyGrad = ctx.createLinearGradient(0, 0, 0, H * 0.58);
+    skyGrad.addColorStop(0.0, "#191233");
+    skyGrad.addColorStop(0.35, "#631D56");
+    skyGrad.addColorStop(0.70, "#D95D2B");
+    skyGrad.addColorStop(1.0, "#F9B83C");
+    ctx.fillStyle = skyGrad;
+    ctx.fillRect(0, 0, W, H);
+
+    const dynTris = [];
+    // Animated Rio Atrato Water South of Malecon (z = -22..-9)
+    for (let wx = -24; wx < 24; wx += 4.0) {
+      for (let wz = -22; wz < -9; wz += 4.0) {
+        const x0 = wx, x1 = wx + 4.0;
+        const z0 = wz, z1 = wz + 4.0;
+        const h00 = -0.75 + Math.sin(x0 * 0.5 + sim.time * 3.0) * 0.18;
+        const h10 = -0.75 + Math.sin(x1 * 0.5 + sim.time * 3.0) * 0.18;
+        const h11 = -0.75 + Math.cos(z1 * 0.5 + sim.time * 2.5) * 0.18;
+        const h01 = -0.75 + Math.cos(z0 * 0.5 + sim.time * 2.5) * 0.18;
+        const shimmer = ((Math.floor(wx + wz + sim.time * 2) & 1) === 0);
+        const col1 = shimmer ? [236, 132, 72] : [34, 132, 176];
+        dynTris.push(makeTri([x0, h00, z0], [x0, h01, z1], [x1, h11, z1], col1, 0.2));
+        dynTris.push(makeTri([x0, h00, z0], [x1, h11, z1], [x1, h10, z0], [28, 108, 152], 0.15));
+      }
+    }
+
+    // Boiling Copper Paila Fire & Chontaduros
+    const fireH = 0.36 + Math.sin(sim.time * 15) * 0.12;
+    addSphereLowPoly(dynTris, -2.6, 0.35, 0.5, 0.42, fireH, 0.42, sim.time * 6, [252, 128, 24], 0.75);
+    for (let c = 0; c < 4; c++) {
+      const ang = sim.time * 2.5 + c * 1.57;
+      addSphereLowPoly(
+        dynTris,
+        -2.6 + Math.cos(ang) * 0.28,
+        1.34 + Math.sin(sim.time * 6 + c) * 0.04,
+        0.5 + Math.sin(ang) * 0.28,
+        0.15, 0.18, 0.15, ang,
+        sim.pailaState === "READY" ? [252, 208, 38] : [232, 68, 32],
+        0.4
+      );
+    }
+
+    // Sculpted 3D Stock on Shelf & Counter (Chontaduros Ovoides & Botellas Torneadas de Viche con UV)
+    for (let i = 0; i < Math.min(6, sim.shelfChonta); i++) {
+      const cz = -0.75 + i * 0.45;
+      addSculptedChontaduro3D(dynTris, 2.48, 1.12, cz, 0.38, sim.time * 1.5 + i, false);
+    }
+    for (let i = 0; i < Math.min(6, sim.shelfBottles); i++) {
+      const bz = -0.75 + i * 0.45;
+      addSculptedVicheBottle3D(dynTris, 2.68, 1.48, bz, 0.36, i * 0.8, (i & 1) === 1);
+    }
+    if (sim.shelfLegend > 0) {
+      addSculptedChontaduro3D(
+        dynTris,
+        0.75, 1.42 + Math.sin(sim.time * 4) * 0.05, 2.62,
+        0.54, sim.time * 2.5,
+        true
+      );
+      addSculptedVicheBottle3D(dynTris, -0.75, 1.14, 2.62, 0.42, sim.time, false);
+    }
+
+    // Articulated 15-Part Meme Customers (Janfry, Jonyer, Dona Cruz, Tostao)
+    sim.npcs.forEach((n, idx) => {
+      const hop = n.state === "CELEBRATING" ? Math.abs(Math.sin(sim.time * 12)) * 0.35 : 0;
+      addArticulatedHuman3D(
+        dynTris,
+        n.x, hop, n.z,
+        Math.atan2(player.x - n.x, player.z - n.z),
+        sim.time * 5.5 + idx * 1.7,
+        0.92,
+        [126, 76, 42],
+        n.shirt,
+        [30, 41, 59],
+        n.hat,
+        false,
+        -1
+      );
+    });
+
+    const camX = player.x;
+    const camY = player.y + Math.sin(player.bobPhase) * 0.035;
+    const camZ = player.z;
+    const cosP = Math.cos(player.pitch);
+    const sinP = Math.sin(player.pitch);
+
+    function worldToCam(v) {
+      const dx = v[0] - camX;
+      const dy = v[1] - camY;
+      const dz = v[2] - camZ;
+      const rx = dx * cosY - dz * sinY;
+      const rz = dx * sinY + dz * cosY;
+      const cy = dy * cosP + rz * sinP;
+      const cz = rz * cosP - dy * sinP;
+      return [rx, cy, cz];
+    }
+
+    const renderQueue = [];
+    function pushTri(c0, c1, c2, n, rgb, emit, zBias, tex, uv0, uv1, uv2) {
+      if (c0[2] < 0.28 && c1[2] < 0.28 && c2[2] < 0.28) return;
+      const z0 = Math.max(0.28, c0[2]);
+      const z1 = Math.max(0.28, c1[2]);
+      const z2 = Math.max(0.28, c2[2]);
+      const zAvg = (z0 + z1 + z2) * 0.3333 + zBias;
+      if (zAvg > 54) return;
+
+      const sx0 = Math.round((W * 0.5 + (c0[0] / z0) * FOV) / SNAP_GRID) * SNAP_GRID;
+      const sy0 = Math.round((H * 0.5 - (c0[1] / z0) * FOV) / SNAP_GRID) * SNAP_GRID;
+      const sx1 = Math.round((W * 0.5 + (c1[0] / z1) * FOV) / SNAP_GRID) * SNAP_GRID;
+      const sy1 = Math.round((H * 0.5 - (c1[1] / z1) * FOV) / SNAP_GRID) * SNAP_GRID;
+      const sx2 = Math.round((W * 0.5 + (c2[0] / z2) * FOV) / SNAP_GRID) * SNAP_GRID;
+      const sy2 = Math.round((H * 0.5 - (c2[1] / z2) * FOV) / SNAP_GRID) * SNAP_GRID;
+
+      if ((sx0 < -120 && sx1 < -120 && sx2 < -120) || (sx0 > W + 120 && sx1 > W + 120 && sx2 > W + 120)) return;
+      if ((sy0 < -120 && sy1 < -120 && sy2 < -120) || (sy0 > H + 120 && sy1 > H + 120 && sy2 > H + 120)) return;
+
+      const dot = Math.max(0, n[0] * lightDir[0] + n[1] * lightDir[1] + n[2] * lightDir[2]);
+      const intensity = Math.min(1.38, 0.44 + dot * 0.66 + emit);
+      const fog = Math.max(0, Math.min(0.55, (zAvg - 26) / 32));
+      const r = Math.min(255, Math.floor(rgb[0] * intensity * (1 - fog) + 232 * fog));
+      const g = Math.min(255, Math.floor(rgb[1] * intensity * (1 - fog) + 122 * fog));
+      const b = Math.min(255, Math.floor(rgb[2] * intensity * (1 - fog) + 74 * fog));
+      const shadeAlpha = Math.max(0, Math.min(0.52, 1.04 - intensity));
+
+      renderQueue.push({
+        sx0: sx0, sy0: sy0, sx1: sx1, sy1: sy1, sx2: sx2, sy2: sy2,
+        zAvg: zAvg,
+        tex: (tex && zAvg < 58) ? tex : 'adoquin',
+        uv0: uv0, uv1: uv1, uv2: uv2,
+        shadeRgba: shadeAlpha > 0.04 ? ("rgba(28, 14, 10, " + shadeAlpha.toFixed(2) + ")") : null,
+        fill: "rgb(" + r + "," + g + "," + b + ")",
+        stroke: "rgb(" + Math.max(0, r - 14) + "," + Math.max(0, g - 14) + "," + Math.max(0, b - 14) + ")"
+      });
+    }
+
+    const totalStatic = staticWorldTris.length;
+    const totalDyn = dynTris.length;
+    const totalWorld = totalStatic + totalDyn;
+    for (let i = 0; i < totalWorld; i++) {
+      const t = i < totalStatic ? staticWorldTris[i] : dynTris[i - totalStatic];
+      pushTri(worldToCam(t.v0), worldToCam(t.v1), worldToCam(t.v2), t.n, t.rgb, t.emit, 0, t.tex, t.uv0, t.uv1, t.uv2);
+    }
+
+    // First-Person 3D Arms & Held 3D Object in Camera Space
+    const camTris = [];
+    const bobX = Math.cos(player.bobPhase * 0.5) * 0.05;
+    const bobY = Math.abs(Math.sin(player.bobPhase)) * 0.04;
+    addBox(camTris, -0.48 + bobX, -0.38 - bobY, 0.92, 0.16, 0.22, 0.65, [126, 76, 42], 0.08);
+    addBox(camTris, -0.42 + bobX, -0.31 - bobY, 1.24, 0.18, 0.16, 0.18, [142, 88, 50], 0.1);
+    addBox(camTris, 0.48 + bobX, -0.38 - bobY, 0.92, 0.16, 0.22, 0.65, [126, 76, 42], 0.08);
+    addBox(camTris, 0.42 + bobX, -0.31 - bobY, 1.24, 0.18, 0.16, 0.18, [142, 88, 50], 0.1);
+
+    if (player.holding) {
+      const hx = bobX, hy = -0.26 - bobY, hz = 1.28;
+      if (player.holding.type === "bulto") {
+        addBox(camTris, hx, hy - 0.06, hz, 0.56, 0.28, 0.38, [176, 114, 56], 0.12, "madera");
+        addSculptedChontaduro3D(camTris, hx - 0.16, hy + 0.22, hz, 0.28, sim.time * 2, false);
+        addSculptedVicheBottle3D(camTris, hx + 0.16, hy + 0.04, hz, 0.28, -sim.time * 1.5, false);
+      } else if (player.holding.type === "chonta_tray") {
+        addBox(camTris, hx, hy - 0.06, hz, 0.62, 0.08, 0.36, [164, 98, 44], 0.1);
+        for (let c = -1; c <= 1; c++) {
+          addCylinder(camTris, hx + c * 0.18, hy - 0.02, hz, 0.06, 0.08, 0.22, 6, [232, 64, 34], 0.25);
+          addSphereLowPoly(camTris, hx + c * 0.18, hy + 0.22, hz, 0.08, 0.08, 0.08, sim.time * 3, [252, 204, 24], 0.4);
+        }
+      } else if (player.holding.type === "bottle_crate") {
+        addBox(camTris, hx, hy - 0.06, hz, 0.58, 0.14, 0.34, [124, 76, 36], 0.1);
+        for (let b = -1; b <= 1; b++) {
+          addCylinder(camTris, hx + b * 0.17, hy, hz, 0.065, 0.065, 0.24, 6, [42, 178, 98], 0.25);
+          addCylinder(camTris, hx + b * 0.17, hy + 0.24, hz, 0.03, 0.03, 0.10, 6, [248, 224, 156], 0.35);
+        }
+      } else if (player.holding.type === "legend_chonta") {
+        addSphereLowPoly(camTris, hx, hy + 0.06, hz, 0.22, 0.28, 0.22, sim.time * 4, [252, 224, 38], 0.68);
+      }
+    }
+
+    for (let i = 0; i < camTris.length; i++) {
+      const ct = camTris[i];
+      pushTri(ct.v0, ct.v1, ct.v2, ct.n, ct.rgb, ct.emit, -10.0, ct.tex, ct.uv0, ct.uv1, ct.uv2);
+    }
+
+    renderQueue.sort((a, b) => b.zAvg - a.zAvg);
+    for (let i = 0; i < renderQueue.length; i++) {
+      const rq = renderQueue[i];
+      const texImg = rq.tex ? texImages[rq.tex] : null;
+      if (texImg && texImg.complete && texImg.naturalWidth > 0 && rq.uv0 && rq.uv1 && rq.uv2) {
+        drawTexturedTriangleAffine(
+          ctx, texImg,
+          rq.sx0, rq.sy0, rq.sx1, rq.sy1, rq.sx2, rq.sy2,
+          rq.uv0[0], rq.uv0[1], rq.uv1[0], rq.uv1[1], rq.uv2[0], rq.uv2[1],
+          rq.shadeRgba
+        );
+      } else {
+        ctx.beginPath();
+        ctx.moveTo(rq.sx0, rq.sy0);
+        ctx.lineTo(rq.sx1, rq.sy1);
+        ctx.lineTo(rq.sx2, rq.sy2);
+        ctx.closePath();
+        ctx.fillStyle = rq.fill;
+        ctx.fill();
+        ctx.strokeStyle = rq.stroke;
+        // Smooth sculpted edges without wireframe stroke
+      }
+    }
+
+    // Floating Customer Order Bubbles with Real Product Photo Badges
+    sim.npcs.forEach((n) => {
+      const cv = worldToCam([n.x, 2.28, n.z]);
+      if (cv[2] > 0.9 && cv[2] < 24) {
+        const sx = W * 0.5 + (cv[0] / cv[2]) * FOV;
+        const sy = H * 0.5 - (cv[1] / cv[2]) * FOV;
+        ctx.font = "900 13px 'Chakra Petch', system-ui, sans-serif";
+        ctx.textAlign = "center";
+        ctx.strokeStyle = "#0F141C";
+        ctx.lineWidth = 3.5;
+        ctx.strokeText(n.name, sx, sy - 16);
+        ctx.fillStyle = "#FFD166";
+        ctx.fillText(n.name, sx, sy - 16);
+
+        ctx.font = "700 11px 'JetBrains Mono', monospace";
+        ctx.strokeText(n.want, sx, sy);
+        ctx.fillStyle = "#6EE7B7";
+        ctx.fillText(n.want, sx, sy);
+        ctx.textAlign = "left";
+      }
+    });
+
+    // =========================================================================
+    // 2D HIGH-RESOLUTION MODERN INDIE UI LAYER (Schedule I / Dave the Diver style)
+    // =========================================================================
+    function drawCard(x, y, w, h, borderCol) {
+      ctx.save();
+      ctx.fillStyle = "rgba(15, 20, 28, 0.90)";
+      ctx.strokeStyle = borderCol || "#D97706";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      if (ctx.roundRect) ctx.roundRect(x, y, w, h, 8);
+      else ctx.rect(x, y, w, h);
+      ctx.fill();
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    // Center Crosshair
+    ctx.strokeStyle = "#FFD166";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(W * 0.5 - 5, H * 0.5 - 5, 10, 10);
+
+    // 1. TOP-LEFT STATUS & INVENTORY CARD WITH REAL PHOTOS
+    drawCard(14, 12, 420, 118, "#FFD166");
+    const vicheImg = texImages["viche"];
+    if (vicheImg && vicheImg.complete && vicheImg.naturalWidth > 0) {
+      ctx.drawImage(vicheImg, 24, 24, 52, 52);
+      ctx.strokeStyle = "#FFD166";
+      ctx.lineWidth = 2;
+      ctx.strokeRect(24, 24, 52, 52);
+    }
+    ctx.font = "900 16px 'Chakra Petch', 'Montserrat', system-ui, sans-serif";
+    ctx.fillStyle = "#FFD166";
+    ctx.fillText("MAESTRO VICHERO DEL MALECON 3D", 86, 38);
+    ctx.font = "700 13px 'JetBrains Mono', monospace";
+    ctx.fillStyle = "#6EE7B7";
+    ctx.fillText("CAJA: $" + sim.money + " COP   |   REPUTACION: " + sim.rep + " PTS", 86, 58);
+    ctx.font = "700 12px 'JetBrains Mono', monospace";
+    ctx.fillStyle = "#FFF9EC";
+    ctx.fillText(
+      "ESTANTE: " + sim.shelfChonta + " CHONTADURO  |  " + sim.shelfBottles + " VICHE  |  " + sim.shelfLegend + " LEGEND x5",
+      86,
+      78
+    );
+    ctx.fillStyle = "#FDE047";
+    ctx.fillText(
+      "PAILA COBRE: " + (sim.pailaState === "READY" ? "LISTA [E]" : "HIRVIENDO...") +
+      "  |  ALAMBIQUE: " + (sim.alambiqueState === "READY" ? "LISTO [E]" : "DESTILANDO..."),
+      24,
+      102
+    );
+    ctx.fillStyle = "#CBD5E1";
+    ctx.font = "600 11px 'JetBrains Mono', monospace";
+    ctx.fillText("UBICACION: MALECON DEL RIO ATRATO Y PLAZA CATEDRAL DE QUIBDO", 24, 120);
+
+    // 2. TOP-RIGHT QUIBDO PLAZA & MALECON MINIMAP
+    const mapS = 136;
+    const mapX = W - mapS - 14;
+    const mapY = 12;
+    drawCard(mapX, mapY, mapS, mapS + 20, "#34D399");
+    ctx.font = "800 12px 'Chakra Petch', system-ui, sans-serif";
+    ctx.fillStyle = "#6EE7B7";
+    ctx.textAlign = "center";
+    ctx.fillText("RADAR MALECON QUIBDO", mapX + mapS * 0.5, mapY + 16);
+    ctx.textAlign = "left";
+
+    const mCx = mapX + mapS * 0.5;
+    const mCy = mapY + mapS * 0.5 + 8;
+    ctx.fillStyle = "#142029";
+    ctx.fillRect(mapX + 8, mapY + 22, mapS - 16, mapS - 16);
+    // Cathedral North
+    ctx.fillStyle = "#FFD166";
+    ctx.fillRect(mCx - 16, mapY + 25, 32, 8);
+    // Stall Box
+    ctx.strokeStyle = "#F59E0B";
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(mCx - 14, mCy - 10, 28, 18);
+    // River South
+    ctx.fillStyle = "#0284C7";
+    ctx.fillRect(mapX + 8, mapY + mapS - 14, mapS - 16, 18);
+    // NPCs
+    sim.npcs.forEach((n) => {
+      ctx.fillStyle = "#38BDF8";
+      ctx.fillRect(mCx + n.x * 2.5 - 3, mCy - n.z * 2.2 - 3, 6, 6);
+    });
+    // Player
+    ctx.fillStyle = "#FFFFFF";
+    ctx.beginPath();
+    ctx.arc(mCx + player.x * 2.5, mCy - player.z * 2.2, 4, 0, Math.PI * 2);
+    ctx.fill();
+
+    // 3. 3D PACK OPENING SHOWCASE BANNER WITH REAL PHOTOS
+    if (sim.packRevealTimer > 0) {
+      const pw = Math.min(680, W - 40);
+      const px = Math.floor((W - pw) * 0.5);
+      drawCard(px, 138, pw, 92, "#FFD166");
+      ctx.font = "900 14px 'Chakra Petch', system-ui, sans-serif";
+      ctx.fillStyle = "#FFD166";
+      ctx.textAlign = "center";
+      ctx.fillText("COSECHA DEL ATRATO ABIERTA! 5 PRODUCTOS OBTENIDOS:", W * 0.5, 158);
+      ctx.textAlign = "left";
+      const slotW = Math.floor((pw - 24) / 5);
+      sim.packItems.forEach((it, idx) => {
+        const ix = px + 12 + idx * slotW;
+        const iy = 166;
+        drawCard(ix, iy, slotW - 8, 56, it.isLegend ? "#FFD166" : "#38BDF8");
+        const img = texImages[it.tex];
+        if (img && img.complete && img.naturalWidth > 0) {
+          ctx.drawImage(img, ix + 6, iy + 8, 36, 36);
+        }
+        ctx.font = "800 10px 'Chakra Petch', system-ui, sans-serif";
+        ctx.fillStyle = it.isLegend ? "#FFD166" : "#FFF9EC";
+        ctx.fillText(it.name.slice(0, 15), ix + 46, iy + 28);
+      });
+    }
+
+    // 4. INTERACTION PROMPT & CUSTOMER DIALOGUE BAR
+    const hovered = getHoveredTarget();
+    const promptTxt = hovered
+      ? hovered.label
+      : player.holding
+      ? "EN MANOS 3D: " + player.holding.label + " (MIRA AL ESTANTE O CLIENTE Y PULSA [E])"
+      : "CAMINA CON WASD Y MIRA AL CLIENTE, PAILA, ALAMBIQUE O ESTANTE PARA INTERACTUAR [E]";
+
+    const prW = Math.min(760, W - 32);
+    const prX = Math.floor((W - prW) * 0.5);
+    drawCard(prX, H - 112, prW, 34, "#34D399");
+    ctx.font = "800 13px 'Chakra Petch', system-ui, sans-serif";
+    ctx.fillStyle = "#6EE7B7";
+    ctx.textAlign = "center";
+    ctx.fillText(promptTxt, W * 0.5, H - 90);
+    ctx.textAlign = "left";
+
+    // 5. BOTTOM CATALOG & CONTROLS BAR WITH REAL TEXTURES
+    const botW = Math.min(860, W - 24);
+    const botX = Math.floor((W - botW) * 0.5);
+    const botY = H - 72;
+    drawCard(botX, botY, botW, 62, "#D97706");
+
+    const catalog = [
+      { tex: "chontaduro", name: "CHONTADURO MIEL", price: "$18 COP" },
+      { tex: "viche", name: "VICHE / ARRECHON", price: "$28 COP" },
+      { tex: "borojo", name: "BOROJO POWER", price: "$28 COP" },
+      { tex: "popocho", name: "AMARILLO LEGEND", price: "$60 COP" }
+    ];
+    const cSlot = Math.floor((botW - 24) / 4);
+    catalog.forEach((cat, i) => {
+      const cx = botX + 12 + i * cSlot;
+      const cy = botY + 7;
+      const img = texImages[cat.tex];
+      if (img && img.complete && img.naturalWidth > 0) {
+        ctx.drawImage(img, cx, cy, 30, 30);
+        ctx.strokeStyle = "#FFD166";
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(cx, cy, 30, 30);
+      }
+      ctx.font = "800 12px 'Chakra Petch', system-ui, sans-serif";
+      ctx.fillStyle = "#FFD166";
+      ctx.fillText(cat.name, cx + 38, cy + 13);
+      ctx.font = "700 11px 'JetBrains Mono', monospace";
+      ctx.fillStyle = "#FFF9EC";
+      ctx.fillText(cat.price, cx + 38, cy + 27);
+    });
+
+    ctx.font = "700 11px 'JetBrains Mono', monospace";
+    ctx.fillStyle = "#FDE047";
+    ctx.textAlign = "center";
+    ctx.fillText(sim.toast, W * 0.5, botY + 53);
+    ctx.textAlign = "left";
+  }
+
+  return {
+    player: player,
+    sim: sim,
+    keys: keys,
+    drag: drag,
+    stepFrame: stepFrame,
+    handleInteract: handleInteract,
+    trigger3DPackOpening: trigger3DPackOpening
+  };
+}
+
+    const cvs = document.getElementById("gameCanvas");
+    const game = createGame2Runtime(cvs, function() {
+      return { w: window.innerWidth || 1280, h: window.innerHeight || 720 };
+    });
+
+    window.addEventListener("keydown", function(e) {
+      game.keys[e.code] = true;
+      if (e.code === "KeyE") game.handleInteract();
+      if (e.code === "KeyF") game.trigger3DPackOpening();
+      if (e.code === "Space") {
+        e.preventDefault();
+        if (game.player.holding && game.player.holding.type === "bulto") {
+          game.trigger3DPackOpening();
+        } else if (game.player.onGround) {
+          game.player.vy = 5.8;
+          game.player.onGround = false;
+        }
+      }
+    });
+
+    window.addEventListener("keyup", function(e) {
+      game.keys[e.code] = false;
+    });
+
+    cvs.addEventListener("mousedown", function(e) {
+      game.drag.active = true;
+      game.drag.lastX = e.clientX;
+      game.drag.lastY = e.clientY;
+      if (e.button === 0) game.handleInteract();
+    });
+
+    window.addEventListener("mousemove", function(e) {
+      if (!game.drag.active) return;
+      const dx = e.clientX - game.drag.lastX;
+      const dy = e.clientY - game.drag.lastY;
+      game.drag.lastX = e.clientX;
+      game.drag.lastY = e.clientY;
+      game.player.yaw += dx * 0.006;
+      game.player.pitch = Math.max(-0.68, Math.min(0.62, game.player.pitch - dy * 0.004));
+    });
+
+    window.addEventListener("mouseup", function() {
+      game.drag.active = false;
+    });
+
+    let lastTs = performance.now();
+    function loop(ts) {
+      const dt = Math.min(0.05, (ts - lastTs) / 1000);
+      lastTs = ts;
+      game.stepFrame(dt);
+      requestAnimationFrame(loop);
+    }
+    requestAnimationFrame(loop);
+  })();
+  </script>
+</body>
+</html>
